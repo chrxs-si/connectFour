@@ -7,6 +7,8 @@ class connectFour:
   RED = (181, 36, 11) #1
   YELLOW = (201, 160, 24) #2
   playerColors = [RED, YELLOW]
+  currentPlayer = 1
+  winner_lenght = 4
 
   def __init__(self):
     pygame.init()
@@ -37,11 +39,6 @@ class connectFour:
     self.loop()
 
   def loop(self):
-    self.addCoin(0, 2)
-    self.addCoin(0, 1)
-    self.addCoin(1, 1)
-    self.addCoin(1, 2)
-    self.addCoin(1, 2)
     self.drawBackground()
     self.drawCoins()
     while True:
@@ -51,21 +48,21 @@ class connectFour:
     y = self.fieldheight - 1
     while self.field[row][y] != 0:
       y -= 1
-      if y <= 0: return False
+      if y < 0: return False
     
     self.field[row][y] = player
 
   def drawBackground(self):
-    self.screen.fill(self.WHITE)
+    self.screen.fill(self.BLACK)
     thickness = 4
 
     rectwidth = self.screenwidth / self.fieldwidth
     for x in range(1, self.fieldwidth):
-      pygame.draw.line(self.screen, self.BLACK, (rectwidth * x, 0), (rectwidth * x, self.screenheight), thickness)
+      pygame.draw.line(self.screen, self.WHITE, (rectwidth * x, 0), (rectwidth * x, self.screenheight), thickness)
 
     rectheight = self.screenheight / self.fieldheight
     for y in range(1, self.fieldheight):
-      pygame.draw.line(self.screen, self.BLACK, (0, rectheight * y), (self.screenwidth, rectheight * y), thickness)
+      pygame.draw.line(self.screen, self.WHITE, (0, rectheight * y), (self.screenwidth, rectheight * y), thickness)
 
     pygame.display.flip()
 
@@ -78,9 +75,40 @@ class connectFour:
           pygame.draw.circle(self.screen, self.playerColors[self.field[x][y] - 1], (rectwidth * x + rectwidth / 2, rectheight * y + rectwidth / 2), self.coinRadius)
     pygame.display.flip()
 
-  def convertCoordinateToRow(self, pos):
-    return int(pos / self.fieldwidth)
+  def convertCoordinateToRow(self, xCoordinate):
+    x = int(xCoordinate / (self.screenwidth / self.fieldwidth))
+    return x
+  
+  def chooseRow(self, row):
+    self.addCoin(row, self.currentPlayer)
+    self.drawBackground()
+    self.drawCoins()
+    win = self.checkWinner(self.currentPlayer)
+    print(f'winner: {win}')
+    self.currentPlayer = self.currentPlayer % 2 + 1
 
+  def checkWinner(self, player):
+    print(self.field)
+    for x in range(0, self.fieldwidth):
+      for y in range(self.fieldheight - 1, self.fieldheight - self.winner_lenght - 1, -1):
+        # horizontal
+        i = 0
+        print(f'x: {x}; y: {y}; i: {i}; player: {self.field[x + i][y]}')
+        while self.field[x + i][y] == player:
+          print(f'x: {x}; y: {y}; i: {i}; player: {self.field[x + i][y]}')
+          if i >= self.winner_lenght - 1: return player
+          i+=1
+        # vertical
+        i = 0
+        while self.field[x][y - i] == player:
+          if i >= self.winner_lenght - 1: return player
+          i+=1
+        # diagonal
+        i = 0
+        while self.field[x + i][y - i] == player:
+          if i >= self.winner_lenght - 1: return player
+          i+=1
+    return 0
   
 
 
