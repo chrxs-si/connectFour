@@ -14,6 +14,7 @@ class connectFour:
     pygame.init()
 
     self.active = True
+    self.open = True
     self.screenheight = 600
     self.screenwidth = 700
     self.screen = pygame.display.set_mode((self.screenwidth, self.screenheight))
@@ -39,12 +40,17 @@ class connectFour:
     self.loop()
 
   def loop(self):
-    self.drawBackground()
-    self.drawCoins()
     while self.active:
-      pass
-      return
-  
+      self.draw()
+    print('end')
+    self.draw()
+    while self.open:
+      keys = pygame.key.get_pressed()
+      if keys[pygame.K_SPACE]:
+        print('close')
+        self.open = False
+
+    
   def addCoin(self, row, player):
     y = self.fieldheight - 1
     while self.field[row][y] != 0:
@@ -53,19 +59,23 @@ class connectFour:
     
     self.field[row][y] = player
 
+  def draw(self):
+    self.drawBackground()
+    self.drawCoins()
+    pygame.display.flip()
+
   def drawBackground(self):
     self.screen.fill(self.BLACK)
     thickness = 4
 
     rectwidth = self.screenwidth / self.fieldwidth
+    if self.active == False: return
     for x in range(1, self.fieldwidth):
       pygame.draw.line(self.screen, self.WHITE, (rectwidth * x, 0), (rectwidth * x, self.screenheight), thickness)
 
     rectheight = self.screenheight / self.fieldheight
     for y in range(1, self.fieldheight):
       pygame.draw.line(self.screen, self.WHITE, (0, rectheight * y), (self.screenwidth, rectheight * y), thickness)
-
-    pygame.display.flip()
 
   def drawCoins(self):
     rectwidth = self.screenwidth / self.fieldwidth
@@ -74,40 +84,53 @@ class connectFour:
       for y in range(len(self.field[x])):
         if self.field[x][y] != 0:
           pygame.draw.circle(self.screen, self.playerColors[self.field[x][y] - 1], (rectwidth * x + rectwidth / 2, rectheight * y + rectwidth / 2), self.coinRadius)
-    pygame.display.flip()
 
   def convertCoordinateToRow(self, xCoordinate):
     x = int(xCoordinate / (self.screenwidth / self.fieldwidth))
     return x
   
   def chooseRow(self, row):
+    if self.active == False: return
     self.addCoin(row, self.currentPlayer)
-    self.drawBackground()
-    self.drawCoins()
     win = self.checkWinner(self.currentPlayer)
-    print(f'winner: {win}')
-    if win != 0: self.active = False
+    if win != 0: 
+      print(f'winner: {win}')
+      self.active = False
+      return win
     self.currentPlayer = self.currentPlayer % 2 + 1
+    
 
   def checkWinner(self, player):
-    print(self.field)
     for x in range(0, self.fieldwidth):
       for y in range(self.fieldheight - 1, self.fieldheight - self.winner_lenght - 1, -1):
         # horizontal
         i = 0
         while self.field[x + i][y] == player:
-          if i >= self.winner_lenght - 1: return player
           i+=1
+          if i >= self.winner_lenght: return str(player) + "a"
+          if x + i >= self.fieldwidth: break
+
         # vertical
         i = 0
         while self.field[x][y - i] == player:
-          if i >= self.winner_lenght - 1: return player
           i+=1
-        # diagonal
+          if i >= self.winner_lenght: return str(player) + "b"
+          if y - i < 0: break
+
+        # diagonal links-unten nach rechts-oben
         i = 0
         while self.field[x + i][y - i] == player:
-          if i >= self.winner_lenght - 1: return player
           i+=1
+          if i >= self.winner_lenght: return str(player) + "c"
+          if x + i >= self.fieldwidth or y - i < 0: break
+            
+        # diagonal rechts-unten nach rechts-unten
+        i = 0
+        while self.field[x - i][y - i] == player:
+          i+=1
+          if i >= self.winner_lenght: return str(player) + "d"
+          if x + i < 0 or y - i < 0: break
+
     return 0
   
 
@@ -121,7 +144,7 @@ def game_thread():
 gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
 gameThread.start()
 
-while cf.active:
+while cf.open:
   for event in pygame.event.get():
     if event.type == pygame.MOUSEBUTTONDOWN:
       pos = pygame.mouse.get_pos()
