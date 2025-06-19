@@ -41,8 +41,9 @@ class connectFour:
   def loop(self):
     self.drawBackground()
     self.drawCoins()
-    while True:
+    while self.active:
       pass
+      return
   
   def addCoin(self, row, player):
     y = self.fieldheight - 1
@@ -85,6 +86,7 @@ class connectFour:
     self.drawCoins()
     win = self.checkWinner(self.currentPlayer)
     print(f'winner: {win}')
+    if win != 0: self.active = False
     self.currentPlayer = self.currentPlayer % 2 + 1
 
   def checkWinner(self, player):
@@ -93,9 +95,7 @@ class connectFour:
       for y in range(self.fieldheight - 1, self.fieldheight - self.winner_lenght - 1, -1):
         # horizontal
         i = 0
-        print(f'x: {x}; y: {y}; i: {i}; player: {self.field[x + i][y]}')
         while self.field[x + i][y] == player:
-          print(f'x: {x}; y: {y}; i: {i}; player: {self.field[x + i][y]}')
           if i >= self.winner_lenght - 1: return player
           i+=1
         # vertical
