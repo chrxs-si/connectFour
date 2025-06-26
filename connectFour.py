@@ -1,5 +1,6 @@
 import pygame
 import threading
+import minmax
 
 class connectFour:
   BLACK = (0,0,0)
@@ -15,6 +16,7 @@ class connectFour:
 
     self.active = True
     self.open = True
+    self.moves = 0
     self.screenheight = 600
     self.screenwidth = 700
     self.screen = pygame.display.set_mode((self.screenwidth, self.screenheight))
@@ -89,16 +91,17 @@ class connectFour:
     x = int(xCoordinate / (self.screenwidth / self.fieldwidth))
     return x
   
-  def chooseRow(self, row):
+  def chooseRow(self, row): #returns: -1 = draw; 1 = player 1 wins; 2 = player 2 wins
     if self.active == False: return
     self.addCoin(row, self.currentPlayer)
+    self.moves += 1
     win = self.checkWinner(self.currentPlayer)
     if win != 0: 
       print(f'winner: {win}')
       self.active = False
       return win
     self.currentPlayer = self.currentPlayer % 2 + 1
-    return 0
+    return None
     
 
   def checkWinner(self, player):
@@ -132,15 +135,9 @@ class connectFour:
           if i >= self.winner_lenght: return player
           if x + i < 0 or y - i < 0: break
 
+    if self.moves >= self.fieldheight * self.fieldwidth: return -1
     return 0
   
-
-
-cf = connectFour()
-
-def game_thread():
-    cf.start()
-
 
 def startPlannedGame(moves):
   print('play: ' + str(moves))
@@ -153,6 +150,27 @@ def startPlannedGame(moves):
       return win
 
 
-startPlannedGame([0, 1, 0, 1, 2, 1, 2, 1])
+cf = connectFour()
+
+def game_thread():
+    cf.start()
+
+gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
+gameThread.start()
 
 
+#human, minmax
+player = ['human', 'minmax']
+
+while cf.open:
+  print(cf.currentPlayer)
+  if player[cf.currentPlayer - 1] == 'human':
+    for event in pygame.event.get():
+      if event.type == pygame.MOUSEBUTTONDOWN:
+        pos = pygame.mouse.get_pos()
+        pos = cf.convertCoordinateToRow(pos[0])
+        cf.chooseRow(pos)
+      if event.type == pygame.QUIT:
+        cf.active = False
+  if player[cf.currentPlayer - 1] == 'minmax':
+    pass
