@@ -98,6 +98,7 @@ class connectFour:
       self.active = False
       return win
     self.currentPlayer = self.currentPlayer % 2 + 1
+    return 0
     
 
   def checkWinner(self, player):
@@ -107,28 +108,28 @@ class connectFour:
         i = 0
         while self.field[x + i][y] == player:
           i+=1
-          if i >= self.winner_lenght: return str(player) + "a"
+          if i >= self.winner_lenght: return player
           if x + i >= self.fieldwidth: break
 
         # vertical
         i = 0
         while self.field[x][y - i] == player:
           i+=1
-          if i >= self.winner_lenght: return str(player) + "b"
+          if i >= self.winner_lenght: return player
           if y - i < 0: break
 
         # diagonal links-unten nach rechts-oben
         i = 0
         while self.field[x + i][y - i] == player:
           i+=1
-          if i >= self.winner_lenght: return str(player) + "c"
+          if i >= self.winner_lenght: return player
           if x + i >= self.fieldwidth or y - i < 0: break
             
         # diagonal rechts-unten nach rechts-unten
         i = 0
         while self.field[x - i][y - i] == player:
           i+=1
-          if i >= self.winner_lenght: return str(player) + "d"
+          if i >= self.winner_lenght: return player
           if x + i < 0 or y - i < 0: break
 
     return 0
@@ -141,14 +142,17 @@ def game_thread():
     cf.start()
 
 
-gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
-gameThread.start()
+def startPlannedGame(moves):
+  print('play: ' + str(moves))
+  cf = connectFour()
+  gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
+  gameThread.start()
+  for move in moves:
+    win = cf.chooseRow(move)
+    if win != 0:
+      return win
 
-while cf.open:
-  for event in pygame.event.get():
-    if event.type == pygame.MOUSEBUTTONDOWN:
-      pos = pygame.mouse.get_pos()
-      pos = cf.convertCoordinateToRow(pos[0])
-      cf.chooseRow(pos)
-    if event.type == pygame.QUIT:
-      cf.active = False
+
+startPlannedGame([0, 1, 0, 1, 2, 1, 2, 1])
+
+
