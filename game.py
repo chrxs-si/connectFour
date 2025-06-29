@@ -1,6 +1,6 @@
 import pygame
 import threading
-import minmax
+from rnd import getRandomMove
 
 class connectFour:
   BLACK = (0,0,0)
@@ -11,24 +11,26 @@ class connectFour:
   currentPlayer = 1
   winner_lenght = 4
 
-  def __init__(self):
-    pygame.init()
-
+  def __init__(self, scrren):
     self.active = True
-    self.open = True
+    self.open = False
     self.moves = 0
     self.screenheight = 600
     self.screenwidth = 700
-    self.screen = pygame.display.set_mode((self.screenwidth, self.screenheight))
+
     self.fieldheight = 6
     self.fieldwidth = 7
     self.coinRadius = 45
     self.field = self.createField(self.fieldwidth, self.fieldheight)
     self.player = 1
 
-    pygame.font.init()
-    self.font = pygame.font.SysFont(None, 36)
-    pygame.display.set_caption("connectFour")
+    if scrren == True:
+      pygame.init()
+      pygame.font.init()
+      self.screen = pygame.display.set_mode((self.screenwidth, self.screenheight))
+      self.font = pygame.font.SysFont(None, 36)
+      pygame.display.set_caption("connectFour")
+      self.open = True
 
   def createField(self, width, height):
     field = []
@@ -37,11 +39,8 @@ class connectFour:
       for y in range(height):
         field[x].append(0)
     return(field)
-  
-  def start(self):
-    self.loop()
 
-  def loop(self):
+  def startScreen(self):
     while self.active:
       self.draw()
     print('end')
@@ -51,15 +50,6 @@ class connectFour:
       if keys[pygame.K_SPACE]:
         print('close')
         self.open = False
-
-    
-  def addCoin(self, row, player):
-    y = self.fieldheight - 1
-    while self.field[row][y] != 0:
-      y -= 1
-      if y < 0: return False
-    
-    self.field[row][y] = player
 
   def draw(self):
     self.drawBackground()
@@ -91,6 +81,14 @@ class connectFour:
     x = int(xCoordinate / (self.screenwidth / self.fieldwidth))
     return x
   
+  def addCoin(self, row, player):
+    y = self.fieldheight - 1
+    while self.field[row][y] != 0:
+      y -= 1
+      if y < 0: return False
+    
+    self.field[row][y] = player
+
   def chooseRow(self, row): #returns: -1 = draw; 1 = player 1 wins; 2 = player 2 wins
     if self.active == False: return
     self.addCoin(row, self.currentPlayer)
@@ -103,7 +101,6 @@ class connectFour:
     self.currentPlayer = self.currentPlayer % 2 + 1
     return None
     
-
   def checkWinner(self, player):
     for x in range(0, self.fieldwidth):
       for y in range(self.fieldheight - 1, self.fieldheight - self.winner_lenght - 1, -1):
@@ -139,9 +136,12 @@ class connectFour:
     return 0
   
 
+def game_thread():
+      cf.startScreen()
+
 def startPlannedGame(moves):
-  print('play: ' + str(moves))
-  cf = connectFour()
+  print('play planned: ' + str(moves))
+  cf = connectFour(False)
   gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
   gameThread.start()
   for move in moves:
@@ -149,21 +149,16 @@ def startPlannedGame(moves):
     if win != 0:
       return win
 
-
-cf = connectFour()
-
-def game_thread():
-    cf.start()
+cf = connectFour(True)
 
 gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
 gameThread.start()
 
 
-#human, minmax
-player = ['human', 'minmax']
+#human, minmax, random
+player = ['human', 'random']
 
-while cf.open:
-  print(cf.currentPlayer)
+while cf.active or cf.open:
   if player[cf.currentPlayer - 1] == 'human':
     for event in pygame.event.get():
       if event.type == pygame.MOUSEBUTTONDOWN:
@@ -174,3 +169,5 @@ while cf.open:
         cf.active = False
   if player[cf.currentPlayer - 1] == 'minmax':
     pass
+  if player[cf.currentPlayer - 1] == 'random':
+    cf.chooseRow(getRandomMove(cf, cf.currentPlayer))
