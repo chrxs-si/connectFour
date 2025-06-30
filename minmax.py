@@ -1,40 +1,60 @@
 from game import connectFour
-import threading
-from itertools import permutations
-from collections import Counter
+from random import randint
+from copy import deepcopy
 
-MAX_DEPTH = 4
+MAX_DEPTH = 1
 
-def getMinMaxMove(cf, player):
-  wins = [0] * len(cf.field)
-  print(wins)
-  for x in range(len(cf.field)):
-    games = []
+def stepDeeper(cf, player, depth=0):
+  pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte
+  gamePaths = [] # speichert die Spiele nach jedem Move
 
+  for row in range(len(cf.field)):
+    # Testen ob Reihe noch Platz hat und die maximale Tiefe noch nicht erreicht ist
+    win = None
+    if cf.field[row][0] == 0 and depth < MAX_DEPTH: 
+      # Den nächsten Move spielen
+      win = cf.chooseRow(row)
+    else:
+      # Die Reihe ist schon voll, daher unentschieden
+      win = -1
 
-def generate_permutations(n):
-    # Ursprüngliche Liste mit n Wiederholungen jeder Zahl von 0 bis 5
-    original_list = [i for i in range(6) for _ in range(n)]
-    
-    # Verwende set(), um Duplikate zu vermeiden
-    unique_permutations = set(permutations(original_list))
-    
-    return unique_permutations
+    #Noch kein Spielende erreicht
+    if win == 0:
+      stepDeeperResult = stepDeeper(deepcopy(cf), player, depth + 1)
+      pointPaths.append(stepDeeperResult[0])
+      gamePaths.append(stepDeeperResult[1])
+    #Unentschieden
+    elif win == -1:
+      pointPaths.append(0)
+      gamePaths.append(None)
+    #Ein Spieler hat gewonnen
+    else:
+      pointPaths.append(-2 if win == player else 1)
+      gamePaths.append(None)
+  
+  return [pointPaths, gamePaths]
 
-# Beispiel: n = 2
-n = 2
-all_perms = generate_permutations(n)
+def calculatePaths(pointPaths):
+  pointSums = []
+  if isinstance(pointPaths, list):
+    for path in pointPaths:
+      pointSums.append(calculatePaths(path))
+  else:
+    return pointPaths
 
-print(f"Anzahl der eindeutigen Permutationen: {len(all_perms)}")
-for p in list(all_perms)[:10]:  # Nur die ersten 10 anzeigen
-    print(p)
+  return sum(pointSums)
 
+def chooseBestPath(points):
+  maxPoints = max(points)
+  indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
+  return indizes[randint(0, len(indizes) - 1)]
 
-#cf = connectFour()
-
-#move = getMinMaxMove(cf, 2)
-#win = cf.chooseRow(move)
-
-[0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]
-
-[0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5]
+def getMinMaxMove(cf):
+  pointPaths = stepDeeper(cf, cf.currentPlayer)
+  print(f'pointPaths: {pointPaths[0]}\n')
+  points = []
+  for path in pointPaths[0]:
+    points.append(calculatePaths(path))
+  print(f'points: {points}\n')
+  path = chooseBestPath(points)
+  return path

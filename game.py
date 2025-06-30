@@ -1,6 +1,5 @@
 import pygame
-import threading
-from rnd import getRandomMove
+from copy import deepcopy
 
 class connectFour:
   BLACK = (0,0,0)
@@ -11,10 +10,11 @@ class connectFour:
   currentPlayer = 1
   winner_lenght = 4
 
-  def __init__(self, scrren):
+  def __init__(self, screen=True):
     self.active = True
     self.open = False
     self.moves = 0
+    self.win = 0
     self.screenheight = 600
     self.screenwidth = 700
 
@@ -24,7 +24,7 @@ class connectFour:
     self.field = self.createField(self.fieldwidth, self.fieldheight)
     self.player = 1
 
-    if scrren == True:
+    if screen == True:
       pygame.init()
       pygame.font.init()
       self.screen = pygame.display.set_mode((self.screenwidth, self.screenheight))
@@ -89,17 +89,17 @@ class connectFour:
     
     self.field[row][y] = player
 
-  def chooseRow(self, row): #returns: -1 = draw; 1 = player 1 wins; 2 = player 2 wins
-    if self.active == False: return
+  def chooseRow(self, row): #returns: -1 = draw; 0 = no win jet; 1 = player 1 wins; 2 = player 2 wins
+    if self.active == False: return self.win
     self.addCoin(row, self.currentPlayer)
     self.moves += 1
-    win = self.checkWinner(self.currentPlayer)
-    if win != 0: 
-      print(f'winner: {win}')
+    self.win = self.checkWinner(self.currentPlayer)
+    if self.win != 0: 
+      if self.open: print(f'winner: {self.win}')
       self.active = False
-      return win
+      return self.win
     self.currentPlayer = self.currentPlayer % 2 + 1
-    return None
+    return 0
     
   def checkWinner(self, player):
     for x in range(0, self.fieldwidth):
@@ -136,38 +136,23 @@ class connectFour:
     return 0
   
 
-def game_thread():
-      cf.startScreen()
-
 def startPlannedGame(moves):
-  print('play planned: ' + str(moves))
   cf = connectFour(False)
-  gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
-  gameThread.start()
   for move in moves:
     win = cf.chooseRow(move)
     if win != 0:
       return win
+    
+def copyGameWithoutPyGame(cf):
+  screen = cf.screen
+  cf.screen = None
+  font = cf.font
+  cf.font = None
 
-cf = connectFour(True)
+  copiedCf = deepcopy(cf)
+  copiedCf.open = False  
 
-gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
-gameThread.start()
+  cf.screen = screen
+  cf.font = font
 
-
-#human, minmax, random
-player = ['human', 'random']
-
-while cf.active or cf.open:
-  if player[cf.currentPlayer - 1] == 'human':
-    for event in pygame.event.get():
-      if event.type == pygame.MOUSEBUTTONDOWN:
-        pos = pygame.mouse.get_pos()
-        pos = cf.convertCoordinateToRow(pos[0])
-        cf.chooseRow(pos)
-      if event.type == pygame.QUIT:
-        cf.active = False
-  if player[cf.currentPlayer - 1] == 'minmax':
-    pass
-  if player[cf.currentPlayer - 1] == 'random':
-    cf.chooseRow(getRandomMove(cf, cf.currentPlayer))
+  return copiedCf
