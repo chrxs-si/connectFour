@@ -2,25 +2,33 @@ from game import connectFour
 from random import randint
 from copy import deepcopy
 
-MAX_DEPTH = 1
+MAX_DEPTH = 4
 
-def stepDeeper(cf, player, depth=0):
+def stepDeeper(oldcf, player, depth=0, r=0):
   pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte
   gamePaths = [] # speichert die Spiele nach jedem Move
 
-  for row in range(len(cf.field)):
+  if depth > MAX_DEPTH:
+    return [0, oldcf]
+
+  for row in range(len(oldcf.field)):
     # Testen ob Reihe noch Platz hat und die maximale Tiefe noch nicht erreicht ist
+
+    cf = deepcopy(oldcf)
     win = None
-    if cf.field[row][0] == 0 and depth < MAX_DEPTH: 
+    if cf.field[row][0] == 0: 
       # Den nächsten Move spielen
       win = cf.chooseRow(row)
     else:
       # Die Reihe ist schon voll, daher unentschieden
       win = -1
+    ####if depth == 0: print('')
+    ####print(f'depth: {depth}, row: {row},  win: {win}, currentPlayer: {cf.currentPlayer}')
+    #Die Maximale Tiefe wurde erreicht
 
     #Noch kein Spielende erreicht
     if win == 0:
-      stepDeeperResult = stepDeeper(deepcopy(cf), player, depth + 1)
+      stepDeeperResult = stepDeeper(deepcopy(cf), player, depth + 1, row)
       pointPaths.append(stepDeeperResult[0])
       gamePaths.append(stepDeeperResult[1])
     #Unentschieden
@@ -29,9 +37,11 @@ def stepDeeper(cf, player, depth=0):
       gamePaths.append(None)
     #Ein Spieler hat gewonnen
     else:
-      pointPaths.append(-2 if win == player else 1)
+      point = (3 if win == player else -2)# * (MAX_DEPTH - depth + 1)
+      pointPaths.append(point)
       gamePaths.append(None)
   
+  ####print(f'depth: {depth}, row: {r},  pointPath: {pointPaths}')
   return [pointPaths, gamePaths]
 
 def calculatePaths(pointPaths):
@@ -50,8 +60,10 @@ def chooseBestPath(points):
   return indizes[randint(0, len(indizes) - 1)]
 
 def getMinMaxMove(cf):
+  ####print('-'*10)
+  ####print(cf.field)
   pointPaths = stepDeeper(cf, cf.currentPlayer)
-  print(f'pointPaths: {pointPaths[0]}\n')
+  ####print(f'\npointPaths: {pointPaths[0]}\n')
   points = []
   for path in pointPaths[0]:
     points.append(calculatePaths(path))

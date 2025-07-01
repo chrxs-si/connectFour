@@ -103,7 +103,7 @@ class connectFour:
     
   def checkWinner(self, player):
     for x in range(0, self.fieldwidth):
-      for y in range(self.fieldheight - 1, self.fieldheight - self.winner_lenght - 1, -1):
+      for y in range(self.fieldheight - 1, -1, -1):
         # horizontal
         i = 0
         while self.field[x + i][y] == player:

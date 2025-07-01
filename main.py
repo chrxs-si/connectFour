@@ -15,7 +15,7 @@ gameThread.start()
 
 
 #human, minmax, random
-player = ['human', 'minmax']
+player = ['random', 'minmax']
 
 while cf.active or cf.open:
   if player[cf.currentPlayer - 1] == 'human':
