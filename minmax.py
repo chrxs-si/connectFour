@@ -12,19 +12,17 @@ def stepDeeper(oldcf, player, depth=0, r=0):
     return [0, oldcf]
 
   for row in range(len(oldcf.field)):
-    # Testen ob Reihe noch Platz hat und die maximale Tiefe noch nicht erreicht ist
 
     cf = deepcopy(oldcf)
+
     win = None
+    # Testen ob Reihe noch Platz hat
     if cf.field[row][0] == 0: 
       # Den nächsten Move spielen
       win = cf.chooseRow(row)
     else:
       # Die Reihe ist schon voll, daher unentschieden
       win = -1
-    ####if depth == 0: print('')
-    ####print(f'depth: {depth}, row: {row},  win: {win}, currentPlayer: {cf.currentPlayer}')
-    #Die Maximale Tiefe wurde erreicht
 
     #Noch kein Spielende erreicht
     if win == 0:
@@ -37,11 +35,10 @@ def stepDeeper(oldcf, player, depth=0, r=0):
       gamePaths.append(None)
     #Ein Spieler hat gewonnen
     else:
-      point = (3 if win == player else -2)# * (MAX_DEPTH - depth + 1)
+      point = (1 if win == player else -1)# * (MAX_DEPTH - depth + 1)
       pointPaths.append(point)
       gamePaths.append(None)
   
-  ####print(f'depth: {depth}, row: {r},  pointPath: {pointPaths}')
   return [pointPaths, gamePaths]
 
 def calculatePaths(pointPaths):
@@ -54,19 +51,23 @@ def calculatePaths(pointPaths):
 
   return sum(pointSums)
 
-def chooseBestPath(points):
+def chooseBestPath(cf, points):
+  #prüfen in welcher Reihe tatsächlich gespielt werden kann
+  for row in range(len(cf.field)):
+    if cf.field[row][0] != 0: points[row] = -100000
+
+  print(f'points: {points}\n')
+
   maxPoints = max(points)
   indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
   return indizes[randint(0, len(indizes) - 1)]
 
 def getMinMaxMove(cf):
-  ####print('-'*10)
-  ####print(cf.field)
   pointPaths = stepDeeper(cf, cf.currentPlayer)
-  ####print(f'\npointPaths: {pointPaths[0]}\n')
   points = []
   for path in pointPaths[0]:
     points.append(calculatePaths(path))
-  print(f'points: {points}\n')
-  path = chooseBestPath(points)
+  path = chooseBestPath(cf, points)
+  print(path)
+
   return path

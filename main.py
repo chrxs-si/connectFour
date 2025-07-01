@@ -15,18 +15,23 @@ gameThread.start()
 
 
 #human, minmax, random
-player = ['random', 'minmax']
+player = ['human', 'minmax']
 
-while cf.active or cf.open:
+while (cf.active or cf.open) and cf.win == 0:
   if player[cf.currentPlayer - 1] == 'human':
     for event in pygame.event.get():
       if event.type == pygame.MOUSEBUTTONDOWN:
         pos = pygame.mouse.get_pos()
         pos = cf.convertCoordinateToRow(pos[0])
-        cf.chooseRow(pos)
+        cf.chooseRow(pos) 
       if event.type == pygame.QUIT:
         cf.active = False
   if player[cf.currentPlayer - 1] == 'minmax':
     cf.chooseRow(getMinMaxMove(copyGameWithoutPyGame(cf)))
   if player[cf.currentPlayer - 1] == 'random':
     cf.chooseRow(getRandomMove(copyGameWithoutPyGame(cf)))
+
+while cf.open:
+  for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+      cf.open = False
