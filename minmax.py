@@ -2,7 +2,7 @@ from game import connectFour
 from random import randint
 from copy import deepcopy
 
-MAX_DEPTH = 4
+MAX_DEPTH = 4  # Maximale Tiefe für den Minimax-Algorithmus
 
 def stepDeeper(oldcf, player, depth=0, r=0):
   pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte
@@ -35,29 +35,31 @@ def stepDeeper(oldcf, player, depth=0, r=0):
       gamePaths.append(None)
     #Ein Spieler hat gewonnen
     else:
-      point = (1 if win == player else -1)# * (MAX_DEPTH - depth + 1)
+      point = ((MAX_DEPTH - depth + 1) * (1 if win == player else -1))  # Punktevergabe bei Gewinn oder Verlust
       pointPaths.append(point)
       gamePaths.append(None)
   
   return [pointPaths, gamePaths]
 
-def calculatePaths(pointPaths):
-  pointSums = []
-  if isinstance(pointPaths, list):
-    for path in pointPaths:
-      pointSums.append(calculatePaths(path))
-  else:
+def calculatePaths(pointPaths, depth=0):
+  # Wenn das aktuelle Element kein Listentyp ist, ist es ein Endwert (1, 0, -1)
+  if not isinstance(pointPaths, list):
     return pointPaths
 
-  return sum(pointSums)
+  # Minimax: Maximieren für eigenen Zug (gerade Tiefe), Minimieren für Gegner (ungerade Tiefe)
+  if depth % 2 == 0:
+    # Spieler am Zug: Maximieren
+    return min(calculatePaths(path, depth + 1) for path in pointPaths)
+  else:
+    # Gegner am Zug: Minimieren
+    return max(calculatePaths(path, depth + 1) for path in pointPaths)
 
 def chooseBestPath(cf, points):
   #prüfen in welcher Reihe tatsächlich gespielt werden kann
   for row in range(len(cf.field)):
-    if cf.field[row][0] != 0: points[row] = -100000
+    if cf.field[row][0] != 0: points[row] = -10000
 
-  print(f'points: {points}\n')
-
+  print(f'points: {points}')
   maxPoints = max(points)
   indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
   return indizes[randint(0, len(indizes) - 1)]
