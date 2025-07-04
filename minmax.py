@@ -2,14 +2,13 @@ from game import connectFour
 from random import randint
 from copy import deepcopy
 
-MAX_DEPTH = 6  # Maximale Tiefe für den Minimax-Algorithmus
+MAX_DEPTH = 5  # Maximale Tiefe für den Minimax-Algorithmus
 
 def stepDeeper(oldcf, player, depth=0):
   pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte
-  gamePaths = [] # speichert die Spiele nach jedem Move
 
   if depth > MAX_DEPTH:
-    return [0, oldcf]
+    return 0
 
   for row in range(len(oldcf.field)):
 
@@ -26,32 +25,26 @@ def stepDeeper(oldcf, player, depth=0):
 
     #Noch kein Spielende erreicht
     if win == 0:
-      stepDeeperResult = stepDeeper(cf, player, depth + 1)
-      pointPaths.append(stepDeeperResult[0])
-      gamePaths.append(stepDeeperResult[1])
+      pointPaths.append(stepDeeper(cf, player, depth + 1))
     #Unentschieden
     elif win == -1:
       pointPaths.append(0)
-      gamePaths.append(None)
     #Ein Spieler hat gewonnen
     else:
       point = ((MAX_DEPTH - depth + 1) * (1 if win == player else -1))  # Punktevergabe bei Gewinn oder Verlust
       pointPaths.append(point)
-      gamePaths.append(None)
-  
-  points = 0
+      break
 
   if (depth == 0):
     return pointPaths
-
+  
   if depth % 2 == 0:
     # Spieler am Zug: Maximieren
-    points = max(pointPaths)
+    return max(pointPaths)
   else:
     # Gegner am Zug: Minimieren
-    points = min(pointPaths)
+    return min(pointPaths)
 
-  return [points, gamePaths]
 
 def chooseBestPath(cf, points):
   #prüfen in welcher Reihe tatsächlich gespielt werden kann
