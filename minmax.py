@@ -2,9 +2,9 @@ from game import connectFour
 from random import randint
 from copy import deepcopy
 
-MAX_DEPTH = 4  # Maximale Tiefe für den Minimax-Algorithmus
+MAX_DEPTH = 6  # Maximale Tiefe für den Minimax-Algorithmus
 
-def stepDeeper(oldcf, player, depth=0, r=0):
+def stepDeeper(oldcf, player, depth=0):
   pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte
   gamePaths = [] # speichert die Spiele nach jedem Move
 
@@ -26,7 +26,7 @@ def stepDeeper(oldcf, player, depth=0, r=0):
 
     #Noch kein Spielende erreicht
     if win == 0:
-      stepDeeperResult = stepDeeper(deepcopy(cf), player, depth + 1, row)
+      stepDeeperResult = stepDeeper(cf, player, depth + 1)
       pointPaths.append(stepDeeperResult[0])
       gamePaths.append(stepDeeperResult[1])
     #Unentschieden
@@ -39,20 +39,19 @@ def stepDeeper(oldcf, player, depth=0, r=0):
       pointPaths.append(point)
       gamePaths.append(None)
   
-  return [pointPaths, gamePaths]
+  points = 0
 
-def calculatePaths(pointPaths, depth=0):
-  # Wenn das aktuelle Element kein Listentyp ist, ist es ein Endwert (1, 0, -1)
-  if not isinstance(pointPaths, list):
+  if (depth == 0):
     return pointPaths
 
-  # Minimax: Maximieren für eigenen Zug (gerade Tiefe), Minimieren für Gegner (ungerade Tiefe)
   if depth % 2 == 0:
     # Spieler am Zug: Maximieren
-    return min(calculatePaths(path, depth + 1) for path in pointPaths)
+    points = max(pointPaths)
   else:
     # Gegner am Zug: Minimieren
-    return max(calculatePaths(path, depth + 1) for path in pointPaths)
+    points = min(pointPaths)
+
+  return [points, gamePaths]
 
 def chooseBestPath(cf, points):
   #prüfen in welcher Reihe tatsächlich gespielt werden kann
@@ -65,11 +64,7 @@ def chooseBestPath(cf, points):
   return indizes[randint(0, len(indizes) - 1)]
 
 def getMinMaxMove(cf):
-  pointPaths = stepDeeper(cf, cf.currentPlayer)
-  points = []
-  for path in pointPaths[0]:
-    points.append(calculatePaths(path))
-  path = chooseBestPath(cf, points)
+  path = chooseBestPath(cf, stepDeeper(cf, cf.currentPlayer))
   print(path)
 
   return path

@@ -125,12 +125,12 @@ class connectFour:
           if i >= self.winner_lenght: return player
           if x + i >= self.fieldwidth or y - i < 0: break
             
-        # diagonal rechts-unten nach rechts-unten
+        # diagonal rechts-unten nach links-oben
         i = 0
         while self.field[x - i][y - i] == player:
           i+=1
           if i >= self.winner_lenght: return player
-          if x + i < 0 or y - i < 0: break
+          if x - i < 0 or y - i < 0: break
 
     if self.moves >= self.fieldheight * self.fieldwidth: return -1
     return 0
