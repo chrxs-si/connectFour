@@ -11,7 +11,7 @@ def game_thread():
 #human, minmax, random
 player = ['human', 'minmax']
 
-points = [0, 0, 0]
+points = [0, 0, 0, 0]
 
 for round in range(5):
   cf = connectFour(True)
@@ -34,8 +34,8 @@ for round in range(5):
     if player[cf.currentPlayer - 1] == 'random':
       cf.chooseRow(getRandomMove(copyGameWithoutPyGame(cf)))
 
-  points[cf.win] += 1
-  print(f'Spieler 1: {points[1]}, Spieler 2: {points[2]}, Unentschieden: {points[0]}')
+  points[cf.win + 1] += 1
+  print(f'Spieler 1 ({player[0]}): {points[2]}, Spieler 2 ({player[1]}): {points[3]}, Unentschieden: {points[0]}')
 
 while cf.open:
   for event in pygame.event.get():

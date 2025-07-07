@@ -8,7 +8,9 @@ def stepDeeper(oldcf, player, depth=0):
   pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte
 
   if depth > MAX_DEPTH:
-    return 0
+    return heuristik(oldcf, player)
+  
+  #print(oldcf.field)
 
   for row in range(len(oldcf.field)):
 
@@ -31,7 +33,7 @@ def stepDeeper(oldcf, player, depth=0):
       pointPaths.append(0)
     #Ein Spieler hat gewonnen
     else:
-      point = ((MAX_DEPTH - depth + 1) * (1 if win == player else -1))  # Punktevergabe bei Gewinn oder Verlust
+      point = (1 if win == player else -1) * (MAX_DEPTH - depth + 2)   # Punktevergabe bei Gewinn oder Verlust
       pointPaths.append(point)
       break
 
@@ -45,6 +47,14 @@ def stepDeeper(oldcf, player, depth=0):
     # Gegner am Zug: Minimieren
     return min(pointPaths)
 
+def heuristik(cf, player):
+  cf.winner_lenght = 3
+  player1 = cf.checkWinner(1)
+  player2 = cf.checkWinner(2)
+  cf.winner_lenght = 4
+  if player1 > 0 or player2 > 0:
+    return 1 if max([player1, player2]) == player else -1
+  return 0
 
 def chooseBestPath(cf, points):
   #prüfen in welcher Reihe tatsächlich gespielt werden kann
