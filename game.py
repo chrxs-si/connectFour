@@ -89,8 +89,9 @@ class connectFour:
     
     self.field[row][y] = player
 
-  def chooseRow(self, row): #returns: -1 = draw; 0 = no win jet; 1 = player 1 wins; 2 = player 2 wins
+  def chooseRow(self, row): #returns: -2 = error(row is full); -1 = draw; 0 = no win jet; 1 = player 1 wins; 2 = player 2 wins
     if self.active == False: return self.win
+    if self.field[row][0] != 0: return -2
     self.addCoin(row, self.currentPlayer)
     self.moves += 1
     self.win = self.checkWinner(self.currentPlayer)

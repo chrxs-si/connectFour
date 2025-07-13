@@ -5,24 +5,17 @@ import math
 import json
 from game import connectFour
 import os
+import threading
+from rnd import getRandomMove
 
 class NeuralNetwork:
-  save_interval = 0
-  path = None
 
   def __init__(self):
     self.layers = []
     self.weights = []
     self.biases = []
     self.activationfunction = []
-
-  def set_save_intervall(self, interval):
-      self.save_interval = interval
-      if (self.path == None):
-          print("can't save the nn, due to no given path.")
-
-  def set_path(self, path):
-    self.path = path
+    self.gen = 0
 
   # Aktivierungsfunktionen
   def softsign(self, x):
@@ -74,7 +67,7 @@ class NeuralNetwork:
   def save(self, path):
     #nn_str = str(self.layers) + "\n-\n" + str(self.weights) + "\n-\n" + str(self.biases)
     with open(path, "w") as file:
-      json.dump({'layers': self.layers, 'weights': self.weights, 'biases': self.biases, 'path': self.path, 'save_interval': self.save_interval}, file)
+      json.dump({'gen': self.gen, 'layers': self.layers, 'weights': self.weights, 'biases': self.biases, 'activationfunction': self.activationfunction}, file)
 
   def load(self, path):
     with open(path, "r") as file:
@@ -83,8 +76,8 @@ class NeuralNetwork:
     self.layers = daten['layers']
     self.weights = daten['weights']
     self.biases = daten['biases']
-    self.path = daten['path']
-    self.save_interval = daten['save_interval']
+    self.activationfunction = daten['activationfunction']
+    self.gen = daten['gen']
     print("neuronal network has been loaded.")
 
   def forward(self, input):
@@ -115,7 +108,9 @@ class NeuralNetwork:
       return self.outputs[-1]
 
 
+
 class Agent:
+  strength = 0
   nn = None
 
   def __init__(self):
@@ -155,72 +150,118 @@ class Agent:
       result.append(self.crossoverLists(sub_elements))
     return result
   
-  def mutate(self, mutationFactor):
-    self.nn.weights = self.mutateLists(self.nn.weights, mutationFactor)
+  def mutate(self, mutationFactor, mutationRate):
+    self.nn.weights = self.mutateLists(self.nn.weights, mutationFactor, mutationRate)
+    self.nn.biases = self.mutateLists(self.nn.biases, mutationFactor * 0.5, mutationRate)
 
-    self.nn.biases = self.mutateLists(self.nn.biases, mutationFactor)
+  def mutateLists(self, input, mutationFactor, mutationRate):
+    if isinstance(input, list):
+      return [self.mutateLists(item, mutationFactor, mutationRate) for item in input]
+    else:
+      if input > 3: input = 3
+      elif input < -3: input = -3
+      elif input == 0: input = random.uniform(-mutationFactor, mutationFactor)
+      if np.random.rand() < mutationRate:
+        return input + np.random.normal(0, mutationFactor)
+      return input
 
-    #weightsArray = np.array(self.nn.weights)
-    #weightNoise = np.random.uniform(-mutationFactor, mutationFactor, size=weightsArray.shape)
-    #self.nn.weights = (weightsArray * weightNoise).tolist()
-
-    #biasesArray = np.array(self.nn.biases)
-    #biasNoise = np.random.uniform(-mutationFactor, mutationFactor, size=biasesArray.shape)
-    #self.nn.biases = (biasesArray * biasNoise).tolist()
-
-  def mutateLists(self, input, mutationFactor):
-      if isinstance(input, list):
-          return [self.mutateLists(item, mutationFactor) for item in input]
-      else:
-          return input + random.uniform(-mutationFactor, mutationFactor)
-
-  def calculateRow(self, field, printOutput=True):
+  def calculateRows(self, field, errorCalculaions=0):
     flattenField = [element for zeile in field for element in zeile]
     points = self.nn.forward(flattenField)
 
     #bereits volle Reihen aussortieren
-    for row in range(len(field)):
-      if field[row][0] != 0: points[row] = -10000
+    if DEEP_DEBUG: print(f'errorCalculaions: {errorCalculaions}')
+    for errors in range(errorCalculaions):
+      points[points.index(max(points))] = -10000
 
-    if printOutput: print(f'neuroevolution points: {points}')
-    maxPoints = max(points)
-    indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
-    return indizes[random.randint(0, len(indizes) - 1)]
+    if DEEP_DEBUG: print(f'neuroevolution points: {points}')
+    return points
+  
+  def getAgentMove(self, cf):
+    row = self.calculateRows(cf.field)
+    return row.index(max(row))
 
 
 
-AGENTS_PER_GENERATION = 100
-AGENT_FIGHT_ROUNDS = 10
-KEEP_AGENTS = 5
-MUTATION_FACTOR = 0.1
+
+AGENTS_PER_GENERATION = 200
+ADD_RANDOM_AGENTS = 10
+AGENT_FIGHT_ROUNDS = 2
+KEEP_AGENTS = 5 #mindestens 2
+MUTATION_FACTOR = 0.2
+MUTATION_RATE = 0.2
+GENERATIONS = 5
+DEBUG = True
+DEEP_DEBUG = False
+DEBUG_SCREEN = True
 
 def playGame(agentA, agentB):
-  cf = connectFour(False)
-  win = 0
-  while win == 0:
-    if cf.currentPlayer == 1:
-      cf.chooseRow(agentA.calculateRow(cf.field, False))
-    else:
-      cf.chooseRow(agentB.calculateRow(cf.field, False))
-  return win
 
-def agentFight(agentA, agentB):
+  cf = connectFour(DEBUG_SCREEN)
+
+  if DEBUG_SCREEN: 
+    def game_thread():
+      cf.startScreen()
+    gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
+    gameThread.start()
+
+  win = 0
   points = [0, 0]
-  for round in range(AGENT_FIGHT_ROUNDS):
-    win = playGame(agentA, agentB)
-    if win == 1:
-      points[0] += 1 
-      points[1] -= 1
-    elif win == 2:
-      points[1] += 1 
-      points[0] -= 1
-  return points
+  error = 0
+  while win == 0 or win == -2:
+    player = cf.currentPlayer
+    if cf.currentPlayer == 1:
+      row = agentA.calculateRows(cf.field, error)
+      row = row.index(max(row))
+      if DEEP_DEBUG: print(row)
+      win = cf.chooseRow(row)
+    else:
+      row = agentB.calculateRows(cf.field, error)
+      row = row.index(max(row))
+      if DEEP_DEBUG: print(row)
+      win = cf.chooseRow(row)
+
+    #bewertung
+    if win == -2: #ungültiger Zug
+      points[player - 1] -= 5
+      error += 1
+    else:
+      error = 0
+      if win == 0: #noch kein Ergebnis
+        cf.winner_lenght -= 1
+        if cf.checkWinner(player) == player:
+          points[player - 1] += 3
+        cf.winner_lenght += 1
+      elif win == player: #gewonnen
+        points[player - 1] += 10
+  
+  if DEBUG: print(f'fight points: {points}')
+  agentA.strength += points[0]
+  agentB.strength += points[1]
+  if DEEP_DEBUG: print(f'strength: agentA: {agentA.strength}, agentB: {agentB.strength}')
+
+def agentFight(agentA, agentB, rounds):
+  for round in range(rounds):
+    playGame(agentB, agentA)
+    playGame(agentA, agentB)
 
 def findBestAgents(agents):
-  while len(agents) > KEEP_AGENTS:
-    points = agentFight(agents[0], agents[1])
-    agents.pop(points.index(max(points)))
-  return agents
+  for i in range(-1, len(agents) - 1):
+    agentFight(agents[i], agents[i + 1], AGENT_FIGHT_ROUNDS)
+  
+  bestAgents = []
+  for i in range(KEEP_AGENTS):
+    bestAgent = agents[0]
+    for agent in agents:
+      if agent.strength > bestAgent.strength: bestAgent = agent
+    bestAgents.append(agents.pop(agents.index(bestAgent)))
+
+  if DEBUG:
+    bestStrength = []
+    for agent in bestAgents: bestStrength.append(agent.strength)
+    print(f'bestStrength: {bestStrength}')
+
+  return bestAgents
 
 def developAgents(startAgents, generations):
   for gen in range(generations):
@@ -230,7 +271,15 @@ def developAgents(startAgents, generations):
     agents = [newAgent]
 
     for i in range(AGENTS_PER_GENERATION): agents.append(deepcopy(newAgent))
-    for a in agents: a.mutate(MUTATION_FACTOR)
+    for a in agents: 
+      a.nn.gen += 1
+      a.strength = 0
+      a.mutate(MUTATION_FACTOR, MUTATION_RATE)
+
+    for i in range(ADD_RANDOM_AGENTS):
+      new = Agent()
+      new.i
+      agents.append(Agent)
   
     startAgents = findBestAgents(agents)
 
@@ -239,7 +288,8 @@ def developAgents(startAgents, generations):
   return bestAgent
 
 
-path = 'saves/neuroevolutionAgent.json'
+base_path = os.path.dirname(__file__)
+path = os.path.join(base_path, "saves", "neuroevolutionAgent3.json")
 
 agent = Agent()
 
@@ -248,6 +298,6 @@ if (os.path.exists(path)):
 else:
     agent.initNN(7, 6)
 
-agent = developAgents([agent], 100)
+agent = developAgents([agent], GENERATIONS)
 
 agent.save(path)
