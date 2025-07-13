@@ -185,7 +185,7 @@ class Agent:
 
 
 AGENTS_PER_GENERATION = 200
-ADD_RANDOM_AGENTS = 10
+ADD_RANDOM_AGENTS = 5
 AGENT_FIGHT_ROUNDS = 2
 KEEP_AGENTS = 5 #mindestens 2
 MUTATION_FACTOR = 0.2
@@ -270,7 +270,9 @@ def developAgents(startAgents, generations):
     newAgent.crossover(startAgents)
     agents = [newAgent]
 
-    for i in range(AGENTS_PER_GENERATION): agents.append(deepcopy(newAgent))
+    for i in range(AGENTS_PER_GENERATION): 
+      agents.append(deepcopy(newAgent))
+          
     for a in agents: 
       a.nn.gen += 1
       a.strength = 0
@@ -278,8 +280,8 @@ def developAgents(startAgents, generations):
 
     for i in range(ADD_RANDOM_AGENTS):
       new = Agent()
-      new.i
-      agents.append(Agent)
+      new.initNN(7, 6)
+      agents.insert(AGENTS_PER_GENERATION / ADD_RANDOM_AGENTS * i, new)
   
     startAgents = findBestAgents(agents)
 
