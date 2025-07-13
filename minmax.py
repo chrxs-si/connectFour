@@ -61,7 +61,7 @@ def chooseBestPath(cf, points):
   for row in range(len(cf.field)):
     if cf.field[row][0] != 0: points[row] = -10000
 
-  print(f'points: {points}')
+  print(f'minmax points: {points}')
   maxPoints = max(points)
   indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
   return indizes[randint(0, len(indizes) - 1)]
