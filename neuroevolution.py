@@ -91,8 +91,8 @@ class NeuralNetwork:
         for knot in range(len(self.biases[layer])):
           x = 0
           for weight in range(len(self.weights[layer])):
-              x += self.outputs[layer][weight] * self.weights[layer][weight][knot]
-              x += self.biases[layer][knot]
+            x += self.outputs[layer][weight] * self.weights[layer][weight][knot]
+          x += self.biases[layer][knot]
           if (self.activationfunction[layer] == 'ReLU'):
             x = self.ReLU(x)
           elif (self.activationfunction[layer] == 'Tanh'):
@@ -125,7 +125,7 @@ class Agent:
   
   def initNN(self, fieldwidth, fieldheight):
     self.nn = NeuralNetwork()
-    self.nn.initialize([fieldwidth*fieldheight, 64, 32, fieldwidth], ['ReLU', 'ReLU', 'linear'])
+    self.nn.initialize([fieldwidth*fieldheight + fieldwidth, 64, 32, fieldwidth], ['ReLU', 'ReLU', 'linear'])
   
   def crossover(self, parents):
     self.nn = parents[0].nn
@@ -167,6 +167,7 @@ class Agent:
 
   def calculateRows(self, field, errorCalculaions=0):
     flattenField = [element for zeile in field for element in zeile]
+    for row in field: flattenField.append( -1 if row[-1] == 0 else (1 if row[0] != 0 else 0)) #-1 falls Spalte leer; 0 falls Spalte nicht voll; 1 falls Spalte voll
     points = self.nn.forward(flattenField)
 
     #bereits volle Reihen aussortieren
@@ -184,16 +185,17 @@ class Agent:
 
 
 
-AGENTS_PER_GENERATION = 200
-ADD_RANDOM_AGENTS = 5
+AGENTS_PER_GENERATION = 300
+ADD_RANDOM_AGENTS = 10
 AGENT_FIGHT_ROUNDS = 2
 KEEP_AGENTS = 5 #mindestens 2
-MUTATION_FACTOR = 0.2
-MUTATION_RATE = 0.2
+MUTATION_FACTOR = 0.1
+MUTATION_RATE = 0.1
+
 GENERATIONS = 5
 DEBUG = True
 DEEP_DEBUG = False
-DEBUG_SCREEN = True
+DEBUG_SCREEN = False
 
 def playGame(agentA, agentB):
 
@@ -223,17 +225,26 @@ def playGame(agentA, agentB):
 
     #bewertung
     if win == -2: #ungültiger Zug
-      points[player - 1] -= 5
+      points[player - 1] -= 10
       error += 1
+
     else:
       error = 0
       if win == 0: #noch kein Ergebnis
         cf.winner_lenght -= 1
-        if cf.checkWinner(player) == player:
+        if cf.checkWinner(player) == player: #3-er Reihe
           points[player - 1] += 3
         cf.winner_lenght += 1
-      elif win == player: #gewonnen
-        points[player - 1] += 10
+
+      if win != 0: #Spiel zu Ende
+        for row in cf.field:
+          if player in row and row[0] == 0: #für jede genutzte und nicht volle Reihe 100 Punkte, außer für die erste genutze Reihe
+            points[player - 1] += 10
+        points[player - 1] -= 10
+
+        if win == player: #gewonnen
+          points[player - 1] += 10
+          points[player % 2] -= 10
   
   if DEBUG: print(f'fight points: {points}')
   agentA.strength += points[0]
@@ -266,32 +277,34 @@ def findBestAgents(agents):
 def developAgents(startAgents, generations):
   for gen in range(generations):
     print(f'generation {gen}')
+    gen = startAgents[0].nn.gen
     newAgent = Agent()
     newAgent.crossover(startAgents)
     agents = [newAgent]
 
     for i in range(AGENTS_PER_GENERATION): 
       agents.append(deepcopy(newAgent))
-          
-    for a in agents: 
-      a.nn.gen += 1
-      a.strength = 0
-      a.mutate(MUTATION_FACTOR, MUTATION_RATE)
 
     for i in range(ADD_RANDOM_AGENTS):
       new = Agent()
       new.initNN(7, 6)
-      agents.insert(AGENTS_PER_GENERATION / ADD_RANDOM_AGENTS * i, new)
+      agents.insert(int(AGENTS_PER_GENERATION / ADD_RANDOM_AGENTS * i), new)
+
+    for a in agents: 
+      a.nn.gen = gen + 1
+      a.strength = 0
+      a.mutate(MUTATION_FACTOR, MUTATION_RATE)
   
     startAgents = findBestAgents(agents)
 
+  print('done')
   bestAgent = Agent()
   bestAgent.crossover(startAgents)
   return bestAgent
 
 
 base_path = os.path.dirname(__file__)
-path = os.path.join(base_path, "saves", "neuroevolutionAgent3.json")
+path = os.path.join(base_path, "saves", "neuroevolutionAgent4.json")
 
 agent = Agent()
 
