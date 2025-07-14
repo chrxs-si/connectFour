@@ -185,14 +185,18 @@ class Agent:
 
 
 
-AGENTS_PER_GENERATION = 400
-ADD_RANDOM_AGENTS = 10
+#Agents per Generation
+AGENTS_PER_GENERATION = 800
+#Additional Agents with random weight
+ADD_RANDOM_AGENTS = 0
+#games agents play against another agent
 AGENT_FIGHT_ROUNDS = 2
-KEEP_AGENTS = 5 #mindestens 2
+#numer of parent-Agents for the next generation
+KEEP_AGENTS = 8 #mindestens 2
 MUTATION_FACTOR = 0.1
 MUTATION_RATE = 0.1
 
-GENERATIONS = 20
+GENERATIONS = 500
 DEBUG = True
 DEEP_DEBUG = False
 DEBUG_SCREEN = True
@@ -239,12 +243,12 @@ def playGame(agentA, agentB):
       if win != 0: #Spiel zu Ende
         for row in cf.field:
           if player in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
-            points[player - 1] += 5
-        points[player - 1] -= 5
+            points[player - 1] += 8
+        points[player - 1] -= 8
 
         if win == player: #gewonnen
-          points[player - 1] += 10
-          points[player % 2] -= 10
+          points[player - 1] += 15
+          points[player % 2] -= 15
   
   if DEBUG: print(f'fight points: {points}')
   agentA.strength += points[0]
@@ -257,8 +261,9 @@ def agentFight(agentA, agentB, rounds):
     playGame(agentA, agentB)
 
 def findBestAgents(agents):
-  for i in range(-1, len(agents) - 1):
+  for i in range(-1, len(agents) - 2):
     agentFight(agents[i], agents[i + 1], AGENT_FIGHT_ROUNDS)
+    agentFight(agents[i], agents[i + 2], AGENT_FIGHT_ROUNDS)
   
   bestAgents = []
   for i in range(KEEP_AGENTS):
@@ -282,13 +287,16 @@ def developAgents(startAgents, generations):
     newAgent.crossover(startAgents)
     agents = [newAgent]
 
+    if DEBUG: print(f'generating Agents...')
     for i in range(AGENTS_PER_GENERATION): 
       agents.append(deepcopy(newAgent))
+      if DEEP_DEBUG: print(f'add Agent {len(agents)}')
 
     for i in range(ADD_RANDOM_AGENTS):
       new = Agent()
       new.initNN(7, 6)
       agents.insert(int(AGENTS_PER_GENERATION / ADD_RANDOM_AGENTS * i), new)
+      if DEEP_DEBUG: print(f'add random Agent at {int(AGENTS_PER_GENERATION / ADD_RANDOM_AGENTS * i)}')
 
     for a in agents: 
       a.nn.gen = gen + 1
@@ -296,6 +304,12 @@ def developAgents(startAgents, generations):
       a.mutate(MUTATION_FACTOR, MUTATION_RATE)
   
     startAgents = findBestAgents(agents)
+
+    print('save...')
+    bestAgent = Agent()
+    bestAgent.crossover(startAgents)
+    bestAgent.save(path)
+
 
   print('done')
   bestAgent = Agent()
