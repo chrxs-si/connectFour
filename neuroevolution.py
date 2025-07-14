@@ -185,17 +185,17 @@ class Agent:
 
 
 
-AGENTS_PER_GENERATION = 300
+AGENTS_PER_GENERATION = 400
 ADD_RANDOM_AGENTS = 10
 AGENT_FIGHT_ROUNDS = 2
 KEEP_AGENTS = 5 #mindestens 2
 MUTATION_FACTOR = 0.1
 MUTATION_RATE = 0.1
 
-GENERATIONS = 5
+GENERATIONS = 20
 DEBUG = True
 DEEP_DEBUG = False
-DEBUG_SCREEN = False
+DEBUG_SCREEN = True
 
 def playGame(agentA, agentB):
 
@@ -238,9 +238,9 @@ def playGame(agentA, agentB):
 
       if win != 0: #Spiel zu Ende
         for row in cf.field:
-          if player in row and row[0] == 0: #für jede genutzte und nicht volle Reihe 100 Punkte, außer für die erste genutze Reihe
-            points[player - 1] += 10
-        points[player - 1] -= 10
+          if player in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
+            points[player - 1] += 5
+        points[player - 1] -= 5
 
         if win == player: #gewonnen
           points[player - 1] += 10
