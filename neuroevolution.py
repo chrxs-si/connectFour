@@ -186,20 +186,20 @@ class Agent:
 
 
 #Agents per Generation
-AGENTS_PER_GENERATION = 800
+AGENTS_PER_GENERATION = 600
 #Additional Agents with random weight
 ADD_RANDOM_AGENTS = 0
-#games agents play against another agent
+#games agents play against another agent. The Agent will fight against four other agents in two rounds each. E.g. AGENT_FIGHT_ROUNDS = 2 means 16 rounds
 AGENT_FIGHT_ROUNDS = 2
 #numer of parent-Agents for the next generation
-KEEP_AGENTS = 8 #mindestens 2
-MUTATION_FACTOR = 0.1
-MUTATION_RATE = 0.1
+KEEP_AGENTS = 6 #mindestens 2
+MUTATION_FACTOR = 0.15
+MUTATION_RATE = 0.2
 
 GENERATIONS = 500
 DEBUG = True
 DEEP_DEBUG = False
-DEBUG_SCREEN = True
+DEBUG_SCREEN = False
 
 def playGame(agentA, agentB):
 
@@ -229,7 +229,7 @@ def playGame(agentA, agentB):
 
     #bewertung
     if win == -2: #ungültiger Zug
-      points[player - 1] -= 10
+      points[player - 1] -= 8
       error += 1
 
     else:
@@ -243,12 +243,12 @@ def playGame(agentA, agentB):
       if win != 0: #Spiel zu Ende
         for row in cf.field:
           if player in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
-            points[player - 1] += 8
-        points[player - 1] -= 8
+            points[player - 1] += 3
+        points[player - 1] -= 3
 
         if win == player: #gewonnen
-          points[player - 1] += 15
-          points[player % 2] -= 15
+          points[player - 1] += 10
+          points[player % 2] -= 10
   
   if DEBUG: print(f'fight points: {points}')
   agentA.strength += points[0]
@@ -259,6 +259,9 @@ def agentFight(agentA, agentB, rounds):
   for round in range(rounds):
     playGame(agentB, agentA)
     playGame(agentA, agentB)
+
+def agentMontecarloFight(agent, rounds):
+  pass
 
 def findBestAgents(agents):
   for i in range(-1, len(agents) - 2):
