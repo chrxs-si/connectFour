@@ -1,5 +1,6 @@
 from game import connectFour
 from game import copyGameWithoutPyGame
+from game import analyseGame
 import time
 import pygame
 import threading
@@ -11,7 +12,7 @@ def game_thread():
       cf.startScreen()
 
 #human, minmax, random, montecarlo
-player = ['montecarlo', 'human']
+player = ['human', 'human']
 playerTime = [0, 0]
 playerMoves = [0, 0]
 
@@ -27,20 +28,25 @@ for round in range(1):
     startTime = time.time()
 
     if player[cf.currentPlayer - 1] == 'human':
-      for event in pygame.event.get():
-        if event.type == pygame.MOUSEBUTTONDOWN:
-          pos = pygame.mouse.get_pos()
-          pos = cf.convertCoordinateToRow(pos[0])
-          cf.chooseRow(pos) 
-        if event.type == pygame.QUIT:
-          cf.active = False
+      action = False
+      while action == False:
+        for event in pygame.event.get():
+          if event.type == pygame.MOUSEBUTTONDOWN:
+            action = True
+            pos = pygame.mouse.get_pos()
+            pos = cf.convertCoordinateToRow(pos[0])
+            cf.chooseRow(pos) 
+          if event.type == pygame.QUIT:
+            action = True
+            cf.active = False
     elif player[cf.currentPlayer - 1] == 'minmax':
       #pygame.time.wait(2000)
       cf.chooseRow(getMinMaxMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'random':
       cf.chooseRow(getRandomMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'montecarlo':
-      cf.chooseRow(monteCarloTreeSearchMove(copyGameWithoutPyGame(cf)))
+      cf.chooseRow(getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf)))
+    print(f'analyse game: {analyseGame(cf)}')
 
     endTime = time.time()
 

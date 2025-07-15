@@ -23,6 +23,8 @@ class connectFour:
     self.coinRadius = 45
     self.field = self.createField(self.fieldwidth, self.fieldheight)
     self.player = 1
+    self.screen = None
+    self.font = None
 
     if screen == True:
       pygame.init()
@@ -157,3 +159,45 @@ def copyGameWithoutPyGame(cf):
   cf.font = font
 
   return copiedCf
+
+def analyseGame(cf):
+  playerRows = [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0]] # Wie viele 2er, 3er, 4er Reihen ein Spieler hat
+  
+  for player in [1, 2]:
+    for x in range(0, cf.fieldwidth):
+      for y in range(cf.fieldheight - 1, -1, -1):
+        # horizontal
+        i = 0
+        while cf.field[x + i][y] == player:
+          i+=1
+          if x + i >= cf.fieldwidth: break
+          playerRows[player-1][i] += 1
+          playerRows[player-1][i-1] -= 2
+
+        # vertical
+        i = 0
+        while cf.field[x][y - i] == player:
+          i+=1
+          if y - i < 0: break
+          playerRows[player-1][i] += 1
+          playerRows[player-1][i-1] -= 2
+
+        # diagonal links-unten nach rechts-oben
+        i = 0
+        while cf.field[x + i][y - i] == player:
+          i+=1
+          if x + i >= cf.fieldwidth or y - i < 0: break
+          playerRows[player-1][i] += 1
+          playerRows[player-1][i-1] -= 2
+            
+        # diagonal rechts-unten nach links-oben
+        i = 0
+        while cf.field[x - i][y - i] == player:
+          i+=1
+          if x - i < 0 or y - i < 0: break
+          playerRows[player-1][i] += 1
+          playerRows[player-1][i-1] -= 2
+
+    playerRows[player-1] = playerRows[player-1][2:]
+
+  return [playerRows]

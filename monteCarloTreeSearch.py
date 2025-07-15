@@ -1,7 +1,7 @@
 from random import randint
 from copy import deepcopy
 
-GAMES_PER_ROW = 500
+GAMES_PER_ROW = 30
 
 def testGame(cf, player, firstmove):
   win = cf.chooseRow(firstmove)
@@ -16,13 +16,13 @@ def testGame(cf, player, firstmove):
   if win == -1: return 0
   return (1 if win == player else -1)
 
-def chooseBestPath(cf, points):
-  print(f'montecarlo points: {points}')
+def chooseBestPath(cf, points, prints=True):
+  if prints: print(f'montecarlo points: {points}')
   maxPoints = max(points)
   indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
   return indizes[randint(0, len(indizes) - 1)]
 
-def monteCarloTreeSearchMove(cf):
+def getMonteCarloTreeSearchMove(cf, prints=True):
   pointPaths = []
 
   for row in range(len(cf.field)):
@@ -33,7 +33,7 @@ def monteCarloTreeSearchMove(cf):
     else:
       pointPaths[row] = -10000
 
-  path = chooseBestPath(cf, pointPaths)
-  print(path)
+  path = chooseBestPath(cf, pointPaths, prints)
+  if prints: print(path)
 
   return path

@@ -7,6 +7,9 @@ from game import connectFour
 import os
 import threading
 from rnd import getRandomMove
+from game import analyseGame
+from game import copyGameWithoutPyGame
+from monteCarloTreeSearch import getMonteCarloTreeSearchMove
 
 class NeuralNetwork:
 
@@ -201,6 +204,43 @@ DEBUG = True
 DEEP_DEBUG = False
 DEBUG_SCREEN = False
 
+def evaluate(win, cf, playerWhoMoved, otherPlayer):
+  points = [0, 0]
+  if win == -2: #ungültiger Zug
+    points[playerWhoMoved - 1] -= 8
+
+  if win == -1: #Unentschieden
+    pass
+
+  if win == 0: #noch kein Ergebnis
+    pass
+
+  if win == -1 or win > 0: #Spiel zu Ende
+    for row in cf.field:
+      if playerWhoMoved in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
+        points[playerWhoMoved - 1] += 3
+    points[playerWhoMoved - 1] -= 3
+
+    analysis = analyseGame(cf)
+    rowLengthNumber = analysis[0]
+    for player in range(2):
+      #2er Reihen
+      points[player] += rowLengthNumber[player][0] * 2
+      points[player % 2] -= rowLengthNumber[player][0] * 1
+      #3er Reihen
+      points[player] += rowLengthNumber[player][1] * 4
+      points[player % 2] -= rowLengthNumber[player][1] * 2
+      #4er Reihe
+      points[player] += rowLengthNumber[player][2] * 10
+      points[player % 2] -= rowLengthNumber[player][2] * 10 
+
+  if win > 0: #Spiel zu Ende & ein Agent hat gewonnen
+    pass
+
+  return points
+
+# region normalMove
+
 def playGame(agentA, agentB):
 
   cf = connectFour(DEBUG_SCREEN)
@@ -213,42 +253,26 @@ def playGame(agentA, agentB):
 
   win = 0
   points = [0, 0]
-  error = 0
+  error = 0 #counts if the agent chooses a invalid row and has to try again
   while win == 0 or win == -2:
     player = cf.currentPlayer
     if cf.currentPlayer == 1:
       row = agentA.calculateRows(cf.field, error)
       row = row.index(max(row))
-      if DEEP_DEBUG: print(row)
+      if DEEP_DEBUG: print(f'AgentA row: {row}')
       win = cf.chooseRow(row)
     else:
       row = agentB.calculateRows(cf.field, error)
       row = row.index(max(row))
-      if DEEP_DEBUG: print(row)
+      if DEEP_DEBUG: print(f'AgentB row: {row}')
       win = cf.chooseRow(row)
 
-    #bewertung
-    if win == -2: #ungültiger Zug
-      points[player - 1] -= 8
-      error += 1
-
+    if win == -2: error += 1
     else:
       error = 0
-      if win == 0: #noch kein Ergebnis
-        cf.winner_lenght -= 1
-        if cf.checkWinner(player) == player: #3-er Reihe
-          points[player - 1] += 3
-        cf.winner_lenght += 1
-
-      if win != 0: #Spiel zu Ende
-        for row in cf.field:
-          if player in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
-            points[player - 1] += 3
-        points[player - 1] -= 3
-
-        if win == player: #gewonnen
-          points[player - 1] += 10
-          points[player % 2] -= 10
+    newPoints = evaluate(win, cf, player, player % 2 + 1)
+    points[0] += newPoints[0]
+    points[1] += newPoints[1]
   
   if DEBUG: print(f'fight points: {points}')
   agentA.strength += points[0]
@@ -260,13 +284,62 @@ def agentFight(agentA, agentB, rounds):
     playGame(agentB, agentA)
     playGame(agentA, agentB)
 
+# endregion
+
+# region MonteCarlo
+
+def PlayMonteCarloGame(agent):
+
+  cf = connectFour(DEBUG_SCREEN)
+
+  if DEBUG_SCREEN: 
+    def game_thread():
+      cf.startScreen()
+    gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
+    gameThread.start()
+
+  win = 0
+  points = 0
+  error = 0 #counts if the agent chooses a invalid row and has to try again
+  while win == 0 or win == -2:
+    player = cf.currentPlayer
+    if cf.currentPlayer == 1:
+      row = agent.calculateRows(cf.field, error)
+      row = row.index(max(row))
+      if DEEP_DEBUG: print(f'Agent row: {row}')
+      win = cf.chooseRow(row)
+    else:
+      row = getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf), False)
+      if DEEP_DEBUG: print(f'Monte Carlo row: {row}')
+      win = cf.chooseRow(row)
+
+    if win == -2: error += 1
+    else:
+      error = 0
+    newPoints = evaluate(win, cf, player, player % 2 + 1)
+    points += newPoints[0]
+
+  
+  if DEBUG: print(f'fight points: {points}, winner: {win} ({'Agent' if win == 1 else 'MonteCarlo'})')
+  agent.strength += points
+  if DEEP_DEBUG: print(f'strength: {agent}')
+
 def agentMontecarloFight(agent, rounds):
-  pass
+  for round in range(rounds):
+    PlayMonteCarloGame(agent)
+
+# endregion
 
 def findBestAgents(agents):
-  for i in range(-1, len(agents) - 2):
-    agentFight(agents[i], agents[i + 1], AGENT_FIGHT_ROUNDS)
-    agentFight(agents[i], agents[i + 2], AGENT_FIGHT_ROUNDS)
+  #Agent gegen Agent
+  #for i in range(-1, len(agents) - 2):
+    #agentFight(agents[i], agents[i + 1], AGENT_FIGHT_ROUNDS)
+    #agentFight(agents[i], agents[i + 2], AGENT_FIGHT_ROUNDS)
+
+  #Agent gegen Monte Carlo
+  for i in range(0, len(agents)):
+    agentMontecarloFight(agents[i], AGENT_FIGHT_ROUNDS)
+
   
   bestAgents = []
   for i in range(KEEP_AGENTS):
