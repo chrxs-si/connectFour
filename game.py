@@ -170,7 +170,7 @@ def analyseGame(cf):
         i = 0
         while cf.field[x + i][y] == player:
           i+=1
-          if x + i >= cf.fieldwidth: break
+          if x + i >= cf.fieldwidth or i > cf.winner_lenght: break
           playerRows[player-1][i] += 1
           playerRows[player-1][i-1] -= 2
 
@@ -178,7 +178,7 @@ def analyseGame(cf):
         i = 0
         while cf.field[x][y - i] == player:
           i+=1
-          if y - i < 0: break
+          if y - i < 0 or i > cf.winner_lenght: break
           playerRows[player-1][i] += 1
           playerRows[player-1][i-1] -= 2
 
@@ -186,7 +186,7 @@ def analyseGame(cf):
         i = 0
         while cf.field[x + i][y - i] == player:
           i+=1
-          if x + i >= cf.fieldwidth or y - i < 0: break
+          if x + i >= cf.fieldwidth or y - i < 0 or i > cf.winner_lenght: break
           playerRows[player-1][i] += 1
           playerRows[player-1][i-1] -= 2
             
@@ -194,7 +194,7 @@ def analyseGame(cf):
         i = 0
         while cf.field[x - i][y - i] == player:
           i+=1
-          if x - i < 0 or y - i < 0: break
+          if x - i < 0 or y - i < 0 or i > cf.winner_lenght: break
           playerRows[player-1][i] += 1
           playerRows[player-1][i-1] -= 2
 

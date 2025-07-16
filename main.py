@@ -6,13 +6,13 @@ import pygame
 import threading
 from rnd import getRandomMove
 from minmax import getMinMaxMove
-from monteCarloTreeSearch import monteCarloTreeSearchMove
+from monteCarloTreeSearch import getMonteCarloTreeSearchMove
 
 def game_thread():
       cf.startScreen()
 
 #human, minmax, random, montecarlo
-player = ['human', 'human']
+player = ['human', 'montecarlo']
 playerTime = [0, 0]
 playerMoves = [0, 0]
 

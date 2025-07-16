@@ -189,20 +189,20 @@ class Agent:
 
 
 #Agents per Generation
-AGENTS_PER_GENERATION = 600
+AGENTS_PER_GENERATION = 300
 #Additional Agents with random weight
 ADD_RANDOM_AGENTS = 0
 #games agents play against another agent. The Agent will fight against four other agents in two rounds each. E.g. AGENT_FIGHT_ROUNDS = 2 means 16 rounds
-AGENT_FIGHT_ROUNDS = 2
+AGENT_FIGHT_ROUNDS = 1
 #numer of parent-Agents for the next generation
-KEEP_AGENTS = 6 #mindestens 2
+KEEP_AGENTS = 5 #mindestens 2
 MUTATION_FACTOR = 0.15
-MUTATION_RATE = 0.2
+MUTATION_RATE = 0.15
 
-GENERATIONS = 500
-DEBUG = True
+GENERATIONS = 1000
+DEBUG = False
 DEEP_DEBUG = False
-DEBUG_SCREEN = False
+DEBUG_SCREEN = True
 
 def evaluate(win, cf, playerWhoMoved, otherPlayer):
   points = [0, 0]
@@ -216,23 +216,26 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
     pass
 
   if win == -1 or win > 0: #Spiel zu Ende
-    for row in cf.field:
-      if playerWhoMoved in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
-        points[playerWhoMoved - 1] += 3
-    points[playerWhoMoved - 1] -= 3
-
     analysis = analyseGame(cf)
     rowLengthNumber = analysis[0]
+
     for player in range(2):
+      for row in cf.field:
+        if player+1 in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
+          points[player] += 7
+      points[player] -= 7
+      if player+1 in cf.field[-1]: points[player] += 3
+      if player+1 in cf.field[-2]: points[player] += 3
+
       #2er Reihen
-      points[player] += rowLengthNumber[player][0] * 2
-      points[player % 2] -= rowLengthNumber[player][0] * 1
+      points[player] += rowLengthNumber[player][0] * 3
+      points[player % 2] -= rowLengthNumber[player][0] * 2
       #3er Reihen
-      points[player] += rowLengthNumber[player][1] * 4
-      points[player % 2] -= rowLengthNumber[player][1] * 2
+      points[player] += rowLengthNumber[player][1] * 6
+      points[player % 2] -= rowLengthNumber[player][1] * 4
       #4er Reihe
-      points[player] += rowLengthNumber[player][2] * 10
-      points[player % 2] -= rowLengthNumber[player][2] * 10 
+      points[player] += rowLengthNumber[player][2] * 12
+      points[player % 2] -= rowLengthNumber[player][2] * 10
 
   if win > 0: #Spiel zu Ende & ein Agent hat gewonnen
     pass
