@@ -189,20 +189,20 @@ class Agent:
 
 
 #Agents per Generation
-AGENTS_PER_GENERATION = 300
+AGENTS_PER_GENERATION = 100
 #Additional Agents with random weight
 ADD_RANDOM_AGENTS = 0
 #games agents play against another agent. The Agent will fight against four other agents in two rounds each. E.g. AGENT_FIGHT_ROUNDS = 2 means 16 rounds
-AGENT_FIGHT_ROUNDS = 1
+AGENT_FIGHT_ROUNDS = 3
 #numer of parent-Agents for the next generation
-KEEP_AGENTS = 5 #mindestens 2
-MUTATION_FACTOR = 0.15
-MUTATION_RATE = 0.15
+KEEP_AGENTS = 8 #mindestens 2
+MUTATION_FACTOR = 0.1
+MUTATION_RATE = 0.1
 
 GENERATIONS = 1000
 DEBUG = False
 DEEP_DEBUG = False
-DEBUG_SCREEN = True
+DEBUG_SCREEN = False
 
 def evaluate(win, cf, playerWhoMoved, otherPlayer):
   points = [0, 0]
@@ -222,20 +222,19 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
     for player in range(2):
       for row in cf.field:
         if player+1 in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
-          points[player] += 7
-      points[player] -= 7
-      if player+1 in cf.field[-1]: points[player] += 3
-      if player+1 in cf.field[-2]: points[player] += 3
+          points[player] += 5
+      points[player] -= 5
+
 
       #2er Reihen
-      points[player] += rowLengthNumber[player][0] * 3
-      points[player % 2] -= rowLengthNumber[player][0] * 2
+      points[player] += rowLengthNumber[player][0] * 2
+      points[player % 2] -= rowLengthNumber[player][0] * 1
       #3er Reihen
       points[player] += rowLengthNumber[player][1] * 6
-      points[player % 2] -= rowLengthNumber[player][1] * 4
+      points[player % 2] -= rowLengthNumber[player][1] * 3
       #4er Reihe
-      points[player] += rowLengthNumber[player][2] * 12
-      points[player % 2] -= rowLengthNumber[player][2] * 10
+      points[player] += rowLengthNumber[player][2] * 18
+      points[player % 2] -= rowLengthNumber[player][2] * 13
 
   if win > 0: #Spiel zu Ende & ein Agent hat gewonnen
     pass
@@ -271,8 +270,7 @@ def playGame(agentA, agentB):
       win = cf.chooseRow(row)
 
     if win == -2: error += 1
-    else:
-      error = 0
+    else: error = 0
     newPoints = evaluate(win, cf, player, player % 2 + 1)
     points[0] += newPoints[0]
     points[1] += newPoints[1]
@@ -317,8 +315,7 @@ def PlayMonteCarloGame(agent):
       win = cf.chooseRow(row)
 
     if win == -2: error += 1
-    else:
-      error = 0
+    else: error = 0
     newPoints = evaluate(win, cf, player, player % 2 + 1)
     points += newPoints[0]
 
