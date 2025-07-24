@@ -189,25 +189,25 @@ class Agent:
 
 
 #Agents per Generation
-AGENTS_PER_GENERATION = 100
+AGENTS_PER_GENERATION = 150
 #Additional Agents with random weight
 ADD_RANDOM_AGENTS = 0
 #games agents play against another agent. The Agent will fight against four other agents in two rounds each. E.g. AGENT_FIGHT_ROUNDS = 2 means 16 rounds
-AGENT_FIGHT_ROUNDS = 3
+AGENT_FIGHT_ROUNDS = 6
 #numer of parent-Agents for the next generation
-KEEP_AGENTS = 8 #mindestens 2
-MUTATION_FACTOR = 0.1
+KEEP_AGENTS = 4 #mindestens 2
+MUTATION_FACTOR = 0.09
 MUTATION_RATE = 0.1
 
 GENERATIONS = 1000
 DEBUG = False
 DEEP_DEBUG = False
-DEBUG_SCREEN = False
+DEBUG_SCREEN = False  
 
 def evaluate(win, cf, playerWhoMoved, otherPlayer):
   points = [0, 0]
   if win == -2: #ungültiger Zug
-    points[playerWhoMoved - 1] -= 8
+    points[playerWhoMoved - 1] -= 6
 
   if win == -1: #Unentschieden
     pass
@@ -217,28 +217,30 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
 
   if win == -1 or win > 0: #Spiel zu Ende
     analysis = analyseGame(cf)
+    if DEEP_DEBUG: 
+      print(f'field: {cf.field}')
+      print(f'game analysis: {analysis}')
     rowLengthNumber = analysis[0]
 
     for player in range(2):
       for row in cf.field:
-        if player+1 in row and row[0] == 0: #für jede genutzte und nicht volle Reihe Punkte, außer für die erste genutze Reihe
-          points[player] += 5
-      points[player] -= 5
-
+        if player+1 in row: #für jede genutzte Reihe gibt es Punkte
+          points[player] += 1
 
       #2er Reihen
       points[player] += rowLengthNumber[player][0] * 2
-      points[player % 2] -= rowLengthNumber[player][0] * 1
+      points[(player+1) % 2] -= rowLengthNumber[player][0] * 1
       #3er Reihen
       points[player] += rowLengthNumber[player][1] * 6
-      points[player % 2] -= rowLengthNumber[player][1] * 3
+      points[(player+1) % 2] -= rowLengthNumber[player][1] * 4
       #4er Reihe
-      points[player] += rowLengthNumber[player][2] * 18
-      points[player % 2] -= rowLengthNumber[player][2] * 13
+      points[player] += rowLengthNumber[player][2] * 30
+      points[(player+1) % 2] -= rowLengthNumber[player][2] * 30
 
   if win > 0: #Spiel zu Ende & ein Agent hat gewonnen
     pass
 
+  if DEEP_DEBUG: print(f'evalutation points: {points}')
   return points
 
 # region normalMove
@@ -393,16 +395,44 @@ def developAgents(startAgents, generations):
   return bestAgent
 
 
-base_path = os.path.dirname(__file__)
-path = os.path.join(base_path, "saves", "neuroevolutionAgent4.json")
+if True:
+  base_path = os.path.dirname(__file__)
+  path = os.path.join(base_path, "saves", "neuroevolutionAgent4.json")
 
-agent = Agent()
+  agent = Agent()
 
-if (os.path.exists(path)):
-    agent.load(path)
-else:
-    agent.initNN(7, 6)
+  if (os.path.exists(path)):
+      agent.load(path)
+  else:
+      agent.initNN(7, 6)
 
-agent = developAgents([agent], GENERATIONS)
+  agent = developAgents([agent], GENERATIONS)
 
-agent.save(path)
+  agent.save(path)
+
+
+
+
+
+
+def getNeuroEvolutioneSearchMove(cf):
+  base_path = os.path.dirname(__file__)
+  path = os.path.join(base_path, "saves", "neuroevolutionAgent4.json")
+
+  agent = Agent()
+
+  if (os.path.exists(path)):
+      agent.load(path)
+  else:
+    raise Exception(f'Could not find agent file at {path}')
+
+  points = agent.calculateRows(cf.field)
+
+  for row in range(len(cf.field)):
+    if cf.field[row][0] != 0:
+      points[row] = -10000
+
+  print(f'neuroevolution points: {points}')
+  maxPoints = max(points)
+  indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
+  return indizes[random.randint(0, len(indizes) - 1)]

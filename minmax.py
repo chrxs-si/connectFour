@@ -4,7 +4,7 @@ from copy import deepcopy
 
 MAX_DEPTH = 5  # Maximale Tiefe für den Minimax-Algorithmus
 
-def stepDeeper(oldcf, player, depth=0):
+def minmaxStep(oldcf, player, depth=0):
   pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte
 
   if depth > MAX_DEPTH:
@@ -27,7 +27,7 @@ def stepDeeper(oldcf, player, depth=0):
 
     #Noch kein Spielende erreicht
     if win == 0:
-      pointPaths.append(stepDeeper(cf, player, depth + 1))
+      pointPaths.append(minmaxStep(cf, player, depth + 1))
     #Unentschieden
     elif win == -1:
       pointPaths.append(0)
@@ -67,7 +67,7 @@ def chooseBestPath(cf, points):
   return indizes[randint(0, len(indizes) - 1)]
 
 def getMinMaxMove(cf):
-  path = chooseBestPath(cf, stepDeeper(cf, cf.currentPlayer))
+  path = chooseBestPath(cf, minmaxStep(cf, cf.currentPlayer))
   print(path)
 
   return path
