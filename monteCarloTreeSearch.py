@@ -1,7 +1,7 @@
 from random import randint
 from copy import deepcopy
 
-GAMES_PER_ROW = 30
+GAMES_PER_ROW = 25
 
 def testGame(cf, player, firstmove):
   win = cf.chooseRow(firstmove)
