@@ -13,13 +13,13 @@ def game_thread():
       cf.startScreen()
 
 #human, minmax, random, montecarlo, neuroevolution
-player = ['human', 'neuroevolution']
+player = ['montecarlo', 'neuroevolution']
 playerTime = [0, 0]
 playerMoves = [0, 0]
 
 points = [0, 0, 0, 0]
 
-for round in range(1):
+for round in range(20):
   cf = connectFour(True)
 
   gameThread = threading.Thread(target=game_thread, args=(), daemon=True)

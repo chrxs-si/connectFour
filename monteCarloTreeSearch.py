@@ -1,39 +1,55 @@
 from random import randint
 from copy import deepcopy
 
-GAMES_PER_ROW = 30
+ITERATIONS = 400
 
-def testGame(cf, player, firstmove):
-  win = cf.chooseRow(firstmove)
+def monteCarloStep(oldcf):
+  pointPaths = [0] * oldcf.fieldwidth
+  cfPaths = [None] * oldcf.fieldwidth
+  cf = deepcopy(oldcf)
+  path = []
+  # Choose a random row that is not already full
+  available_rows = [i for i in range(len(cf.field)) if cf.field[i][0] == 0]
+  if not available_rows:
+    return [0, path]  # No moves possible
+  row = available_rows[randint(0, len(available_rows) - 1)]
 
-  while win == 0:
-    possible_rows = []
-    for row in range(len(cf.field)):
-      if cf.field[row][0] == 0: possible_rows.append(row)
+  win = cf.chooseRow(row)
+  path.append(row)
+  cfPaths[row] = cf
+  if win != 0:
+    return [win, pointPaths, cfPaths]  # Return the winner and the path taken
+  
+  # Continue playing randomly until the game ends
+  win, pointPaths[row], cfPaths[row] = monteCarloStep(cf)
+  return [win, pointPaths, cfPaths]
 
-    win = cf.chooseRow(possible_rows[randint(0, len(possible_rows) - 1)])
 
-  if win == -1: return 0
-  return (1 if win == player else -1)
 
-def chooseBestPath(cf, points, prints=True):
-  if prints: print(f'montecarlo points: {points}')
-  maxPoints = max(points)
-  indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
-  return indizes[randint(0, len(indizes) - 1)]
+def findBestMove(oldcf, player):
+  pointPaths = [0] * oldcf.fieldwidth
+  paths = [None] * oldcf.fieldwidth
+  for i in range(ITERATIONS):
+    # Wähle eine zufällige row, die in paths noch None ist und nicht voll ist
+    available_rows = [row for row in range(oldcf.fieldwidth) if paths[row] is None and oldcf.field[row][0] == 0]
+    if not available_rows:
+      continue  # Keine gültigen Züge mehr für diese Iteration
+    row = available_rows[randint(0, len(available_rows) - 1)]
+    cf = deepcopy(oldcf)
+    win = cf.chooseRow(row)
+    if win == 0:
+      win, path = playRandomGame(cf)
+    pointPaths[row] += 1 if win == player else -1
+    paths[row] = [row]
+    else:
+
+
+    win, path = playRandomGame(cf)
+    
 
 def getMonteCarloTreeSearchMove(cf, prints=True):
   pointPaths = []
 
-  for row in range(len(cf.field)):
-    pointPaths.append(0)
-    if cf.field[row][0] == 0:
-      for game in range(GAMES_PER_ROW):
-        pointPaths[row] += testGame(deepcopy(cf), cf.currentPlayer, row)
-    else:
-      pointPaths[row] = -10000
-
-  path = chooseBestPath(cf, pointPaths, prints)
   if prints: print(path)
 
   return path

@@ -395,7 +395,7 @@ def developAgents(startAgents, generations):
   return bestAgent
 
 
-if True:
+if False:
   base_path = os.path.dirname(__file__)
   path = os.path.join(base_path, "saves", "neuroevolutionAgent4.json")
 
