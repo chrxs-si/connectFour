@@ -312,7 +312,7 @@ def PlayMonteCarloGame(agent):
       if DEEP_DEBUG: print(f'Agent row: {row}')
       win = cf.chooseRow(row)
     else:
-      row = getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf), False)
+      row = getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf))
       if DEEP_DEBUG: print(f'Monte Carlo row: {row}')
       win = cf.chooseRow(row)
 
