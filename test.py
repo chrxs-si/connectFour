@@ -1,2 +1,5 @@
-list = [1, 1]
-print(list.index(max(list)))
+a = 1
+b = a
+a += 1
+print(b)
+print(a)
