@@ -107,16 +107,17 @@ def chooseBestPath(cf, points):
   for row in range(len(cf.field)):
     if cf.field[row][0] != 0: points[row] = -10000
 
-  print(f'monte Carlo points: {points}')
   maxPoints = max(points)
   indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
-  return indizes[random.randint(0, len(indizes) - 1)]
+  row = indizes[random.randint(0, len(indizes) - 1)]
+  print(f'monteCarlo - row: {row}, points: {points}')
+  return row
 
 
 def getMonteCarloTreeSearchMove(cf):
+  print('calculating ...')
   pointPaths = calculateMoves(cf)
   path = chooseBestPath(cf, pointPaths)
-  print(path)
   return path
 
 cf = connectFour(False)

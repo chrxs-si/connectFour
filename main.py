@@ -41,7 +41,6 @@ for round in range(1):
             action = True
             cf.active = False
     elif player[cf.currentPlayer - 1] == 'minmax':
-      #pygame.time.wait(2000)
       cf.chooseRow(getMinMaxMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'random':
       cf.chooseRow(getRandomMove(copyGameWithoutPyGame(cf)))

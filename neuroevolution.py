@@ -421,6 +421,7 @@ if False:
 
 
 def getNeuroEvolutioneSearchMove(cf):
+  print('calculating ...')
   base_path = os.path.dirname(__file__)
   path = os.path.join(base_path, "saves", "neuroevolutionAgent4.json")
 
@@ -437,7 +438,8 @@ def getNeuroEvolutioneSearchMove(cf):
     if cf.field[row][0] != 0:
       points[row] = -10000
 
-  print(f'neuroevolution points: {points}')
   maxPoints = max(points)
   indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
-  return indizes[random.randint(0, len(indizes) - 1)]
+  row = indizes[random.randint(0, len(indizes) - 1)]
+  print(f'neuroevolution - row: {row}, points: {points}')
+  return row
