@@ -317,7 +317,7 @@ def PlayMonteCarloGame(agent):
       if DEEP_DEBUG: print(f'Agent row: {row}')
       win = cf.chooseRow(row)
     else:
-      row = getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf), False)
+      row = getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf))
       if DEEP_DEBUG: print(f'Monte Carlo row: {row}')
       win = cf.chooseRow(row)
 
@@ -400,7 +400,7 @@ def developAgents(startAgents, generations):
   return bestAgent
 
 
-if True:
+if False:
   base_path = os.path.dirname(__file__)
   path = os.path.join(base_path, "saves", "neuroevolutionAgent4.json")
 

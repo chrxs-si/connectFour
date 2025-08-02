@@ -13,7 +13,7 @@ def game_thread():
       cf.startScreen()
 
 #human, minmax, random, montecarlo, neuroevolution
-player = ['human', 'neuroevolution']
+player = ['minmax', 'human']
 playerTime = [0, 0]
 playerMoves = [0, 0]
 
@@ -49,8 +49,6 @@ for round in range(1):
       cf.chooseRow(getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'neuroevolution':
       cf.chooseRow(getNeuroEvolutioneSearchMove(copyGameWithoutPyGame(cf)))
-      
-    print(f'analyse game: {analyseGame(cf)}')
 
     endTime = time.time()
 
