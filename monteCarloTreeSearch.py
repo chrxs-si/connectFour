@@ -3,7 +3,7 @@ from copy import deepcopy
 from game import connectFour
 import math
 
-ITERATIONS = 1000
+ITERATIONS = 100
 
 class MCTSNode:
   def __init__(self, cf, parent=None, move=None):
@@ -102,7 +102,7 @@ def calculateMoves(cf):
 
   return points
   
-def chooseBestPath(cf, points):
+def chooseBestPath(cf, points, printOut):
   #prüfen in welcher Reihe tatsächlich gespielt werden kann
   for row in range(len(cf.field)):
     if cf.field[row][0] != 0: points[row] = -10000
@@ -110,16 +110,12 @@ def chooseBestPath(cf, points):
   maxPoints = max(points)
   indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
   row = indizes[random.randint(0, len(indizes) - 1)]
-  print(f'monteCarlo - row: {row}, points: {points}')
+  if printOut: print(f'monteCarlo - row: {row}, points: {points}')
   return row
 
 
-def getMonteCarloTreeSearchMove(cf):
-  print('calculating ...')
+def getMonteCarloTreeSearchMove(cf, printOut=True):
+  if printOut: print('calculating ...')
   pointPaths = calculateMoves(cf)
-  path = chooseBestPath(cf, pointPaths)
+  path = chooseBestPath(cf, pointPaths, printOut)
   return path
-
-cf = connectFour(False)
-
-getMonteCarloTreeSearchMove(cf)

@@ -13,13 +13,15 @@ def game_thread():
       cf.startScreen()
 
 #human, minmax, random, montecarlo, neuroevolution
-player = ['minmax', 'human']
+player = ['human', 'montecarlo']
+
 playerTime = [0, 0]
 playerMoves = [0, 0]
 
 points = [0, 0, 0, 0]
 
-for round in range(1):
+for round in range(0, 1):
+
   cf = connectFour(True)
 
   gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
@@ -53,10 +55,11 @@ for round in range(1):
 
     playerMoves[cf.currentPlayer - 1] += 1
     playerTime[cf.currentPlayer - 1] += (endTime - startTime)
-    print(f"in {endTime - startTime:.2f} s")
+    print(f"took {endTime - startTime:.2f} s")
 
   points[cf.win + 1] += 1
-  print(f'Spieler 1 ({player[0]}): {points[2]}, Spieler 2 ({player[1]}): {points[3]}, Unentschieden: {points[0]}')
+  print(f'\nSpieler 1 ({player[0]}): {points[2]}, Spieler 2 ({player[1]}): {points[3]}, Unentschieden: {points[0]}')
+  print(f'durchschnittliche Züge pro Spiel: {sum(playerMoves) / (round + 1)}')
   print(f'durchschnittliche Zeit pro Zug gesamt: Spieler 1 ({player[1]}): {playerTime[0] / playerMoves[0]:.2f} s, Spieler 2 ({player[0]}): {playerTime[1] / playerMoves[1]:.2f} s')
   print('-'*20)
 

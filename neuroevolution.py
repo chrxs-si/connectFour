@@ -187,29 +187,31 @@ class Agent:
 
 
 
+TRAINING = True
 
 #Agents per Generation
-AGENTS_PER_GENERATION = 120
+AGENTS_PER_GENERATION = 300
 #Additional Agents with random weight
 ADD_RANDOM_AGENTS = 0
 #games agents play against another agent. The Agent will fight against four other agents in two rounds each. E.g. AGENT_FIGHT_ROUNDS = 2 means 16 rounds
-AGENT_FIGHT_ROUNDS = 5
+AGENT_FIGHT_ROUNDS = 3
+
 #numer of parent-Agents for the next generation
 KEEP_AGENTS = 4 #mindestens 2
-MUTATION_FACTOR = 0.09
-MUTATION_RATE = 0.1
+MUTATION_FACTOR = 0.12
+MUTATION_RATE = 0.12
 
 GENERATIONS = 1000
 DEBUG = False
 DEEP_DEBUG = False
-DEBUG_SCREEN = False
+DEBUG_SCREEN = True
 
 
 
 def evaluate(win, cf, playerWhoMoved, otherPlayer):
   points = [0, 0]
   if win == -2: #ungültiger Zug
-    points[playerWhoMoved - 1] -= 6
+    points[playerWhoMoved - 1] -= 10
 
   if win == -1: #Unentschieden
     pass
@@ -227,20 +229,21 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
     for player in range(2):
       for row in cf.field:
         if player+1 in row: #für jede genutzte Reihe gibt es Punkte
-          points[player] += 5
-      if player+1 in cf.field[-1]: points[player] += 3
-      if player+1 in cf.field[-2]: points[player] += 3
-      if player+1 in cf.field[0]: points[player] += 3
+          points[player] += 30
+        if row.count(player+1) == 1: #für jede genutzte Reihe mit 2 oder 3 Steinen gibt es Punkte
+          points[player] += 30
+        if row.count(player+1) > 1 and  row.count(player+1) < 4: #für jede genutzte Reihe mit 2 oder 3 Steinen gibt es Punkte
+          points[player] += 10
 
       #2er Reihen
       points[player] += rowLengthNumber[player][0] * 2
       points[(player+1) % 2] -= rowLengthNumber[player][0] * 1
       #3er Reihen
-      points[player] += rowLengthNumber[player][1] * 6
-      points[(player+1) % 2] -= rowLengthNumber[player][1] * 4
+      points[player] += rowLengthNumber[player][1] * 4
+      points[(player+1) % 2] -= rowLengthNumber[player][1] * 3
       #4er Reihe
-      points[player] += rowLengthNumber[player][2] * 22
-      points[(player+1) % 2] -= rowLengthNumber[player][2] * 22
+      points[player] += rowLengthNumber[player][2] * 10
+      points[(player+1) % 2] -= rowLengthNumber[player][2] * 10
 
   if win > 0: #Spiel zu Ende & ein Agent hat gewonnen
     pass
@@ -317,7 +320,7 @@ def PlayMonteCarloGame(agent):
       if DEEP_DEBUG: print(f'Agent row: {row}')
       win = cf.chooseRow(row)
     else:
-      row = getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf))
+      row = getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf), False)
       if DEEP_DEBUG: print(f'Monte Carlo row: {row}')
       win = cf.chooseRow(row)
 
@@ -400,7 +403,8 @@ def developAgents(startAgents, generations):
   return bestAgent
 
 
-if False:
+#Training
+if TRAINING:
   base_path = os.path.dirname(__file__)
   path = os.path.join(base_path, "saves", "neuroevolutionAgent4.json")
 
