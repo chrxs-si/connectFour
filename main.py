@@ -13,7 +13,7 @@ def game_thread():
       cf.startScreen()
 
 #human, minmax, random, montecarlo, neuroevolution
-player = ['human', 'montecarlo']
+player = ['human', 'neuroevolution']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]

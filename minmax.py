@@ -2,7 +2,7 @@ from game import connectFour
 from random import randint
 from copy import deepcopy
 
-MAX_DEPTH = 6  # Maximale Tiefe für den Minimax-Algorithmus
+MAX_DEPTH = 7  # Maximale Tiefe für den Minimax-Algorithmus
 
 def minmaxStep(oldcf, player, depth=0):
   pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte

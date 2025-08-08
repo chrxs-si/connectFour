@@ -85,15 +85,16 @@ def calculateMoves(cf):
     endNode = monteCarloStep(currentNode)
     
     # backpropagation
-    result = endNode.wins
-    currentNode = endNode.parent
-    while currentNode is not None:
-      if currentNode.player == endNode.player:
-        currentNode.wins += result
-      else:
-        currentNode.wins += 1 - result
-      currentNode.visits += 1
-      currentNode = currentNode.parent
+    if endNode is not None:
+      result = endNode.wins
+      currentNode = endNode.parent
+      while currentNode is not None:
+        if currentNode.player == endNode.player:
+          currentNode.wins += result
+        else:
+          currentNode.wins += 1 - result
+        currentNode.visits += 1
+        currentNode = currentNode.parent
   
 
   points = [0] * len(cf.field)

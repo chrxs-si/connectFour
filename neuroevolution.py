@@ -187,7 +187,7 @@ class Agent:
 
 
 
-TRAINING = True
+TRAINING = False
 
 #Agents per Generation
 AGENTS_PER_GENERATION = 300
@@ -198,20 +198,21 @@ AGENT_FIGHT_ROUNDS = 3
 
 #numer of parent-Agents for the next generation
 KEEP_AGENTS = 4 #mindestens 2
-MUTATION_FACTOR = 0.12
-MUTATION_RATE = 0.12
+MUTATION_FACTOR = 0.15
+MUTATION_RATE = 0.15
 
 GENERATIONS = 1000
 DEBUG = False
 DEEP_DEBUG = False
-DEBUG_SCREEN = True
+DEBUG_SCREEN = False
+
 
 
 
 def evaluate(win, cf, playerWhoMoved, otherPlayer):
   points = [0, 0]
   if win == -2: #ungültiger Zug
-    points[playerWhoMoved - 1] -= 10
+    points[playerWhoMoved - 1] -= 7
 
   if win == -1: #Unentschieden
     pass
@@ -229,21 +230,27 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
     for player in range(2):
       for row in cf.field:
         if player+1 in row: #für jede genutzte Reihe gibt es Punkte
-          points[player] += 30
-        if row.count(player+1) == 1: #für jede genutzte Reihe mit 2 oder 3 Steinen gibt es Punkte
-          points[player] += 30
-        if row.count(player+1) > 1 and  row.count(player+1) < 4: #für jede genutzte Reihe mit 2 oder 3 Steinen gibt es Punkte
           points[player] += 10
+        if row.count(player+1) <= 2:
+          points[player] += 6
+        if row.count(player+1) >= 4:
+          points[player] -= 6
+        if row.count(player+1) >= 5:
+          points[player] -= 6
+      if sum(1 for lst in  cf.field if 3 in lst) >= 5: # Punkte falls in 5 oder mehr Reihen ein Stein ist
+        points[player] += 8
+      if cf.field[0][-1] != player+1:
+        points[player] += 2
 
       #2er Reihen
-      points[player] += rowLengthNumber[player][0] * 2
-      points[(player+1) % 2] -= rowLengthNumber[player][0] * 1
+      points[player] += rowLengthNumber[player][0] * 8
+      points[(player+1) % 2] -= rowLengthNumber[player][0] * 4
       #3er Reihen
-      points[player] += rowLengthNumber[player][1] * 4
-      points[(player+1) % 2] -= rowLengthNumber[player][1] * 3
+      points[player] += rowLengthNumber[player][1] * 20
+      points[(player+1) % 2] -= rowLengthNumber[player][1] * 16
       #4er Reihe
-      points[player] += rowLengthNumber[player][2] * 10
-      points[(player+1) % 2] -= rowLengthNumber[player][2] * 10
+      points[player] += rowLengthNumber[player][2] * 32
+      points[(player+1) % 2] -= rowLengthNumber[player][2] * 32
 
   if win > 0: #Spiel zu Ende & ein Agent hat gewonnen
     pass
@@ -312,9 +319,11 @@ def PlayMonteCarloGame(agent):
   win = 0
   points = 0
   error = 0 #counts if the agent chooses a invalid row and has to try again
+  agentPlayer = random.randint(1,2)
+  if DEBUG: print(f'Agent player: {agentPlayer}')
   while win == 0 or win == -2:
     player = cf.currentPlayer
-    if cf.currentPlayer == 1:
+    if cf.currentPlayer == agentPlayer:
       row = agent.calculateRows(cf.field, error)
       row = row.index(max(row))
       if DEEP_DEBUG: print(f'Agent row: {row}')
@@ -327,10 +336,10 @@ def PlayMonteCarloGame(agent):
     if win == -2: error += 1
     else: error = 0
     newPoints = evaluate(win, cf, player, player % 2 + 1)
-    points += newPoints[0]
+    points += newPoints[agentPlayer-1]
 
   
-  if DEBUG: print(f'fight points: {points}, winner: {win} ({'Agent' if win == 1 else 'MonteCarlo'})')
+  if DEBUG: print(f'fight points: {points}, winner: {win} ({'Agent' if win == agentPlayer else 'MonteCarlo'})')
   agent.strength += points
   if DEEP_DEBUG: print(f'strength: {agent}')
 
