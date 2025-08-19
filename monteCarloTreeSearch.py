@@ -96,7 +96,7 @@ def calculateMoves(cf):
         currentNode.visits += 1
         currentNode = currentNode.parent
   
-
+  # Calculate points for each move
   points = [0] * len(cf.field)
   for child in startingNode.children:
     points[child.move] = child.wins / child.visits if child.visits > 0 else 0

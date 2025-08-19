@@ -2,10 +2,10 @@ from game import connectFour
 from random import randint
 from copy import deepcopy
 
-MAX_DEPTH = 5  # Maximale Tiefe für den Minimax-Algorithmus
+MAX_DEPTH = 5  # Maximum depth for the Minimax algorithm
 
 def minmaxStep(oldcf, player, depth=0):
-  pointPaths = [] # gibt an welcher Pfad wie gut ist; ist der Pfad noch nicht zu Ende gibt es 0 Punkte
+  pointPaths = [] # indicates how good each path is; if the path is not finished yet, it gets 0 points
 
   if depth > MAX_DEPTH:
     return heuristik(oldcf, player)
@@ -17,23 +17,23 @@ def minmaxStep(oldcf, player, depth=0):
     cf = deepcopy(oldcf)
 
     win = None
-    # Testen ob Reihe noch Platz hat
+    # Check if the row still has space
     if cf.field[row][0] == 0: 
-      # Den nächsten Move spielen
+      # Play the next move
       win = cf.chooseRow(row)
     else:
-      # Die Reihe ist schon voll, daher unentschieden
+      # The row is already full, so it's a draw
       win = -1
 
-    #Noch kein Spielende erreicht
+    # No end of game reached yet
     if win == 0:
       pointPaths.append(minmaxStep(cf, player, depth + 1))
-    #Unentschieden
+    # Draw
     elif win == -1:
       pointPaths.append(0)
-    #Ein Spieler hat gewonnen
+    # A player has won
     else:
-      point = (1 if win == player else -1) * (MAX_DEPTH - depth + 2)   # Punktevergabe bei Gewinn oder Verlust
+      point = (1 if win == player else -1) * (MAX_DEPTH - depth + 2)   # Points awarded for win or loss
       pointPaths.append(point)
       break
 
@@ -41,10 +41,10 @@ def minmaxStep(oldcf, player, depth=0):
     return pointPaths
   
   if depth % 2 == 0:
-    # Spieler am Zug: Maximieren
+    # Player's turn: maximize
     return max(pointPaths)
   else:
-    # Gegner am Zug: Minimieren
+    # Opponent's turn: minimize
     return min(pointPaths)
 
 def heuristik(cf, player):
@@ -57,11 +57,10 @@ def heuristik(cf, player):
   return 0
 
 def chooseBestPath(cf, points):
-  #prüfen in welcher Reihe tatsächlich gespielt werden kann
+  # check in which row a move can actually be made
   for row in range(len(cf.field)):
     if cf.field[row][0] != 0: points[row] = -10000
 
- 
   maxPoints = max(points)
   indizes = [i for i, wert in enumerate(points) if wert == maxPoints]
   row = indizes[randint(0, len(indizes) - 1)]

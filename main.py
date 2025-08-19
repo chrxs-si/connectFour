@@ -12,21 +12,24 @@ from neuroevolution import getNeuroEvolutioneSearchMove
 def game_thread():
       cf.startScreen()
 
-#human, minmax, random, montecarlo, neuroevolution
-player = ['neuroevolution', 'montecarlo']
+# set player types here
+# Options: human, minmax, random, montecarlo, neuroevolution
+player = ['neuroevolution', 'minmax']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
 
 points = [0, 0, 0, 0]
 
-for round in range(0, 5):
+# set game rounds
+for round in range(1):
 
   cf = connectFour(True)
 
   gameThread = threading.Thread(target=game_thread, args=(), daemon=True)
   gameThread.start()
 
+  # start game loop
   while (cf.active or cf.open) and cf.win == 0:
     startTime = time.time()
 
@@ -57,12 +60,14 @@ for round in range(0, 5):
     playerTime[cf.currentPlayer - 1] += (endTime - startTime)
     print(f"took {endTime - startTime:.2f} s")
 
+  # print game stats
   points[cf.win + 1] += 1
   print(f'\nSpieler 1 ({player[0]}): {points[2]}, Spieler 2 ({player[1]}): {points[3]}, Unentschieden: {points[0]}')
   print(f'durchschnittliche Züge pro Spiel: {sum(playerMoves) / (round + 1)}')
   print(f'durchschnittliche Zeit pro Zug gesamt: Spieler 1 ({player[1]}): {playerTime[0] / playerMoves[0]:.2f} s, Spieler 2 ({player[0]}): {playerTime[1] / playerMoves[1]:.2f} s')
   print('-'*20)
 
+# wait to close game window
 while cf.open:
   for event in pygame.event.get():
     if event.type == pygame.QUIT:

@@ -68,7 +68,6 @@ class NeuralNetwork:
       self.biases.append(bias_vector)
 
   def save(self, path):
-    #nn_str = str(self.layers) + "\n-\n" + str(self.weights) + "\n-\n" + str(self.biases)
     with open(path, "w") as file:
       json.dump({'gen': self.gen, 'layers': self.layers, 'weights': self.weights, 'biases': self.biases, 'activationfunction': self.activationfunction}, file)
 
@@ -130,6 +129,7 @@ class Agent:
     self.nn = NeuralNetwork()
     self.nn.initialize([fieldwidth*fieldheight + fieldwidth, 64, 32, fieldwidth], ['ReLU', 'ReLU', 'linear'])
   
+  
   def crossover(self, parents):
     self.nn = parents[0].nn
 
@@ -141,14 +141,15 @@ class Agent:
     for parent in parents: allBiases.append(parent.nn.biases)
     self.nn.biases = self.crossoverLists(allBiases)
 
+
   def crossoverLists(self, elements):
-    # Wenn alle Elemente Zahlen sind, bilde den Durchschnitt
+    # if all elements are numbers, return their average
     if all(isinstance(el, (int, float)) for el in elements):
       return sum(elements) / len(elements)
 
-    # Andernfalls rekursiv über die Struktur iterieren
+    # otherwise, perform crossover
     result = []
-    for i in range(len(elements[0])):  # Länge der ersten Liste auf dieser Ebene
+    for i in range(len(elements[0])):  #
       sub_elements = [el[i] for el in elements]
       result.append(self.crossoverLists(sub_elements))
     return result
@@ -173,7 +174,7 @@ class Agent:
     for row in field: flattenField.append( -1 if row[-1] == 0 else (1 if row[0] != 0 else 0)) #-1 falls Spalte leer; 0 falls Spalte nicht voll; 1 falls Spalte voll
     points = self.nn.forward(flattenField)
 
-    #bereits volle Reihen aussortieren
+    # check if the row is full
     if DEEP_DEBUG: print(f'errorCalculaions: {errorCalculaions}')
     for errors in range(errorCalculaions):
       points[points.index(max(points))] = -10000
@@ -188,16 +189,14 @@ class Agent:
 
 
 TRAINING = False
-
-#Agents per Generation
+# Agents per Generation
 AGENTS_PER_GENERATION = 300
-#Additional Agents with random weight
+# Additional Agents with random weight
 ADD_RANDOM_AGENTS = 0
-#games agents play against another agent. The Agent will fight against four other agents in two rounds each. E.g. AGENT_FIGHT_ROUNDS = 2 means 16 rounds
+# games agents play against another agent. The Agent will fight against four other agents in two rounds each. E.g. AGENT_FIGHT_ROUNDS = 2 means 16 rounds
 AGENT_FIGHT_ROUNDS = 3
-
-#numer of parent-Agents for the next generation
-KEEP_AGENTS = 4 #mindestens 2
+# numer of parent-Agents for the next generation
+KEEP_AGENTS = 4 # minimum 2
 MUTATION_FACTOR = 0.15
 MUTATION_RATE = 0.15
 
@@ -211,16 +210,16 @@ DEBUG_SCREEN = False
 
 def evaluate(win, cf, playerWhoMoved, otherPlayer):
   points = [0, 0]
-  if win == -2: #ungültiger Zug
+  if win == -2: # invalid move
     points[playerWhoMoved - 1] -= 7
 
-  if win == -1: #Unentschieden
+  if win == -1: # draw
     pass
 
-  if win == 0: #noch kein Ergebnis
+  if win == 0: # no end of game
     pass
 
-  if win == -1 or win > 0: #Spiel zu Ende
+  if win == -1 or win > 0: # game over
     analysis = analyseGame(cf)
     if DEEP_DEBUG: 
       print(f'field: {cf.field}')
@@ -229,38 +228,26 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
 
     for player in range(2):
       for row in cf.field:
-        if player+1 in row: #für jede genutzte Reihe gibt es Punkte
+        if player+1 in row: # für jede genutzte Reihe gibt es Punkte
           points[player] += 8
 
-        if row.count(player+1) <= 2:
-          points[player] += 6
-        if row.count(player+1) >= 4:
-          points[player] -= 6
-        if row.count(player+1) >= 5:
-          points[player] -= 6
-      if sum(1 for lst in  cf.field if 3 in lst) >= 5: # Punkte falls in 5 oder mehr Reihen ein Stein ist
-        points[player] += 12
-      if cf.field[0][-1] != player+1:
-        points[player] += 2
-
-      #2er Reihen
+      # 2er Reihen
       points[player] += rowLengthNumber[player][0] * 8
       points[(player+1) % 2] -= rowLengthNumber[player][0] * 4
-      #3er Reihen
+      # 3er Reihen
       points[player] += rowLengthNumber[player][1] * 20
       points[(player+1) % 2] -= rowLengthNumber[player][1] * 16
-      #4er Reihe
+      # 4er Reihe
       points[player] += rowLengthNumber[player][2] * 42
       points[(player+1) % 2] -= rowLengthNumber[player][2] * 42
 
-  if win > 0: #Spiel zu Ende & ein Agent hat gewonnen
+  if win > 0: # game over and angent has won
     pass
 
   if DEEP_DEBUG: print(f'evalutation points: {points}')
   return points
 
-# region normalMove
-
+# region Agend vs Agent move
 def playGame(agentA, agentB):
 
   cf = connectFour(DEBUG_SCREEN)
@@ -375,6 +362,7 @@ def findBestAgents(agents):
 
   return bestAgents
 
+
 def developAgents(startAgents, generations):
   for gen in range(generations):
     print(f'generation {gen}')
@@ -428,9 +416,6 @@ if TRAINING:
   agent = developAgents([agent], GENERATIONS)
 
   agent.save(path)
-
-
-
 
 
 
