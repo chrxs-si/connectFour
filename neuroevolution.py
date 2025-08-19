@@ -230,7 +230,8 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
     for player in range(2):
       for row in cf.field:
         if player+1 in row: #für jede genutzte Reihe gibt es Punkte
-          points[player] += 10
+          points[player] += 8
+
         if row.count(player+1) <= 2:
           points[player] += 6
         if row.count(player+1) >= 4:
@@ -238,7 +239,7 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
         if row.count(player+1) >= 5:
           points[player] -= 6
       if sum(1 for lst in  cf.field if 3 in lst) >= 5: # Punkte falls in 5 oder mehr Reihen ein Stein ist
-        points[player] += 8
+        points[player] += 12
       if cf.field[0][-1] != player+1:
         points[player] += 2
 
@@ -249,8 +250,8 @@ def evaluate(win, cf, playerWhoMoved, otherPlayer):
       points[player] += rowLengthNumber[player][1] * 20
       points[(player+1) % 2] -= rowLengthNumber[player][1] * 16
       #4er Reihe
-      points[player] += rowLengthNumber[player][2] * 32
-      points[(player+1) % 2] -= rowLengthNumber[player][2] * 32
+      points[player] += rowLengthNumber[player][2] * 42
+      points[(player+1) % 2] -= rowLengthNumber[player][2] * 42
 
   if win > 0: #Spiel zu Ende & ein Agent hat gewonnen
     pass

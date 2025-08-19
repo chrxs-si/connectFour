@@ -13,14 +13,14 @@ def game_thread():
       cf.startScreen()
 
 #human, minmax, random, montecarlo, neuroevolution
-player = ['human', 'neuroevolution']
+player = ['neuroevolution', 'montecarlo']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
 
 points = [0, 0, 0, 0]
 
-for round in range(0, 1):
+for round in range(0, 5):
 
   cf = connectFour(True)
 
