@@ -3,6 +3,7 @@ from game import copyGameWithoutPyGame
 from game import analyseGame
 import time
 import pygame
+import subprocess
 import threading
 from rnd import getRandomMove
 from minmax import getMinMaxMove
