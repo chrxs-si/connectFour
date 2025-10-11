@@ -1,6 +1,6 @@
 import subprocess
 
-path = "C:/Users/chris/Programming/Git/HWR/connectFour/connectFour/app.exe"
+path = "C:/Users/chris/Programming/Git/HWR/connectFour/connectFour/minmax.exe"
 
 print("start")
 
