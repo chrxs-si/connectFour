@@ -3,7 +3,6 @@
 #include <string.h>
 
 int main(int argc, char *argv[]) {
-  char *uebergebener_wert_als_string = argv[1];
-  printf("Erster Wert (argv[1]): %s\n", uebergebener_wert_als_string);
-  return 0;
+  int list[] =  {1, 2, 3, 4, 5, 6};
+  printf("sizeof test: %d\n", (sizeof(list) / sizeof(list[0])));
 }

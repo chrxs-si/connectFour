@@ -14,17 +14,26 @@ try:
   cf.field[3][5] = 2
   cf.field[4][5] = 2
 
-  data = ' '.join(str(cf.field[col][row]) for row in range(len(cf.field[0])) for col in range(len(cf.field)))
+  cf.field[0][5] = 1
+  cf.field[0][4] = 2
+  cf.field[0][3] = 1
+  cf.field[0][2] = 2
+  cf.field[0][1] = 1
+  cf.field[0][0] = 2
+
+
+  data = '1 ' + ' '.join(str(cf.field[col][row]) for row in range(len(cf.field[0])) for col in range(len(cf.field)))
 
   print(f"data {data}")
 
   ergebnis = subprocess.run(
-        [path, "True"],
+        [path, " 2"],
         input=data,
         check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
         capture_output=True,
         text=True
     )
+    
   
   stdout = ergebnis.stdout.strip()
   tokens = stdout.split()

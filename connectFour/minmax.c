@@ -3,9 +3,11 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define MAX_DEPTH 4
+#define MAX_DEPTH 6
 #define ROWS 6
 #define COLS 7
+
+int debug_level = 0;
 
 int max_number(int list[]) {
   int max = list[0];
@@ -30,7 +32,7 @@ int min_number(int list[]) {
 }
 
 
-int check_win(int field[ROWS][COLS], int player) {
+int check_win(int field[][COLS], int player) {
   // Check horizontal, vertical, and diagonal for a win
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
@@ -78,7 +80,7 @@ int check_win(int field[ROWS][COLS], int player) {
 }
 
 
-int move(int field[ROWS][COLS], int player, int row) {
+int move(int field[][COLS], int player, int row) {
 
   for (int i = ROWS - 1; i >= 0; i--) {
     if (field[row][i] == 0) {
@@ -92,17 +94,19 @@ int move(int field[ROWS][COLS], int player, int row) {
 }
 
 
-int heuristik(int field[ROWS][COLS], int player) {
+int heuristik(int field[][COLS], int player) {
   return 0;
 }
 
 
-int choose_best_path(int field[ROWS][COLS], int points[]) {
+int choose_best_path(int field[][COLS], int points[]) {
   
   // check in which row a move can actually be made
-  for (int row = 0; row < ROWS; row++)
+  for (int row = 0; row < ROWS; row++) {
     if (field[row][0] != 0) {
+      printf("choose_best_path - row %d, field: %d\n", row, field[row][0]);
       points[row] = -10000;
+    }
   }
 
   int max_points = max_number(points);
@@ -114,10 +118,19 @@ int choose_best_path(int field[ROWS][COLS], int points[]) {
     }
   }
 
+  if (debug_level > 1) {
+    printf("choose_best_path - max_points: %d, count: %d, indizes:", max_points, count);
+    for (int r = 0; r < ROWS; r++) {
+      printf(" %d", indizes[r]);
+    }
+    printf("\n");
+  }
+
+
   int row = indizes[rand() % count];
 
   // Debug output
-  if (points) {
+  if (points && debug_level > 0) {
     printf("minmax - row: %d, points:", row);
     for (int r = 0; r < ROWS; r++) {
       printf(" %d", points[r]);
@@ -130,7 +143,11 @@ int choose_best_path(int field[ROWS][COLS], int points[]) {
 }
 
 
-int minmax_step(int old_field[ROWS][COLS], int player, int depth) {
+int minmax_step(int old_field[][COLS], int player, int depth) {
+  if (debug_level > 1) {
+    printf("minmax_step - depth: %d, player: %d \n", depth, player);
+  }
+
   int points[ROWS]; // indicates how good each path is; if the path is not finished yet, it gets 0 points
   memset(points, 0, sizeof(points)); // initialize points to 0
 
@@ -157,7 +174,7 @@ int minmax_step(int old_field[ROWS][COLS], int player, int depth) {
 
     // No end of game reached yet
     if (win == 0) {
-      points[row] = minmax_step(field, -player, depth + 1); // switch player
+      points[row] = minmax_step(field, player, depth + 1); // switch player
     }
     // Draw
     else if (win == -1) {
@@ -193,7 +210,6 @@ int minmax_step(int old_field[ROWS][COLS], int player, int depth) {
 
 
 int load_player(int *player) {
-  printf("Loading player ...\n");
   if (scanf("%d", player) != 1) {
     printf("Error reading input and loading player.\n");
     return 1;
@@ -202,12 +218,11 @@ int load_player(int *player) {
 }
 
 
-int load_field(int field[ROWS][COLS]) {
-  printf("Field loading ...\n");
+int load_field(int field[][COLS]) {
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
       // load field from stdin
-      if (scanf("%d", field[r][c]) != 1) {
+      if (scanf("%d", &field[r][c]) != 1) {
         printf("Error reading input and loading field.\n");
         return  1;
       }
@@ -217,7 +232,7 @@ int load_field(int field[ROWS][COLS]) {
 }
 
 
-int print_field(int field[ROWS][COLS]) {
+int print_field(int field[][COLS]) {
   // Print the loaded field 
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
@@ -225,9 +240,6 @@ int print_field(int field[ROWS][COLS]) {
     }
     printf("\n");
   }
-  
-  printf("Field loaded.\n");
-
   return 0;
 }
 
@@ -235,28 +247,31 @@ int print_field(int field[ROWS][COLS]) {
 int main(int argc, char *argv[]) {
   printf("calculating ...\n");
 
-  bool debug = (argc > 1 && strcmp(argv[1], "True") == 0);
-
-  printf("Debug mode: %s\n", debug ? "True" : "False");
-
-  int player = 0;
-  if (!load_player(player)) {
-    return 1;
+  if (argc > 1) {
+    debug_level = atoi(argv[1]);
   }
 
-  printf("Player: %d\n", player);
+  if (debug_level > 0) {
+    printf("Debug mode activated.\n");
+  }
+  
+  int player = 0;
+  
+  if (load_player(&player) != 0) {
+    printf("Error loading player.\n");
+    return 1;
+  }
 
   int field[ROWS][COLS];
-  if (!load_field(field)) {
+  if (load_field(field) != 0) {
     return 1;
   }
 
-  if (debug) {
+  if (debug_level > 0) {
     print_field(field);   
   }
 
   int path = minmax_step(field, player, 0);
-  printf("\n%d", path);
    
   return 0;
 }
