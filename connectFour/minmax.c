@@ -1,11 +1,12 @@
-#include<stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
-#define MAX_DEPTH 6
-#define ROWS 6
-#define COLS 7
+#define MAX_DEPTH 2
+#define WIDTH 7
+#define HEIGHT 6
 
 int debug_level = 0;
 
@@ -20,7 +21,6 @@ int max_number(int list[]) {
 }
 
 
-
 int min_number(int list[]) {
   int min = list[0];
   for (int i = 0; i < (sizeof(list) / sizeof(list[0])); i++) {
@@ -32,32 +32,32 @@ int min_number(int list[]) {
 }
 
 
-int check_win(int field[][COLS], int player) {
+int check_win(int field[][HEIGHT], int player) {
   // Check horizontal, vertical, and diagonal for a win
-  for (int r = 0; r < ROWS; r++) {
-    for (int c = 0; c < COLS; c++) {
+  for (int x = 0; x < WIDTH; x++) {
+    for (int y = 0; y < HEIGHT; y++) {
       // Check horizontal
-      if (c <= COLS - 4) {
+      if (y <= HEIGHT - 4) {
         int i = 0;
-        if (field[r][c] == player && field[r][c+1] == player && field[r][c+2] == player && field[r][c+3] == player) {
+        if (field[x][y] == player && field[x][y+1] == player && field[x][y+2] == player && field[x][y+3] == player) {
           return player;
         }
       }
       // Check vertical
-      if (r <= ROWS - 4) {
-        if (field[r][c] == player && field[r+1][c] == player && field[r+2][c] == player && field[r+3][c] == player) {
+      if (x <= WIDTH - 4) {
+        if (field[x][y] == player && field[x+1][y] == player && field[x+2][y] == player && field[x+3][y] == player) {
           return player;
         }
       }
       // Check diagonal (bottom-left to top-right)
-      if (r <= ROWS - 4 && c <= COLS - 4) {
-        if (field[r][c] == player && field[r+1][c+1] == player && field[r+2][c+2] == player && field[r+3][c+3] == player) {
+      if (x <= WIDTH - 4 && y <= HEIGHT - 4) {
+        if (field[x][y] == player && field[x+1][y+1] == player && field[x+2][y+2] == player && field[x+3][y+3] == player) {
           return player;
         }
       }
       // Check diagonal (top-left to bottom-right)
-      if (r >= 3 && c <= COLS - 4) {
-        if (field[r][c] == player && field[r-1][c+1] == player && field[r-2][c+2] == player && field[r-3][c+3] == player) {
+      if (x >= 3 && y <= HEIGHT - 4) {
+        if (field[x][y] == player && field[x-1][y+1] == player && field[x-2][y+2] == player && field[x-3][y+3] == player) {
           return player;
         }
       }
@@ -66,8 +66,8 @@ int check_win(int field[][COLS], int player) {
 
   // Check for draw
   bool is_draw = true;
-  for (int r = 0; r < ROWS; r++) {
-    if (field[r][0] == 0) {
+  for (int row = 0; row < WIDTH; row++) {
+    if (field[row][0] == 0) {
       is_draw = false;
       break;
     }
@@ -80,12 +80,14 @@ int check_win(int field[][COLS], int player) {
 }
 
 
-int move(int field[][COLS], int player, int row) {
+int move(int field[][HEIGHT], int current_player, int row) {
 
-  for (int i = ROWS - 1; i >= 0; i--) {
+  printf("%d\n", row);
+
+  for (int i = HEIGHT - 1; i >= 0; i--) {
     if (field[row][i] == 0) {
-      field[row][i] = player;
-      return check_win(field, player); // successful move
+      field[row][i] = current_player;
+      return check_win(field, current_player); // successful move
     }
   }
   
@@ -94,15 +96,15 @@ int move(int field[][COLS], int player, int row) {
 }
 
 
-int heuristik(int field[][COLS], int player) {
+int heuristik(int field[][HEIGHT], int player) {
   return 0;
 }
 
 
-int choose_best_path(int field[][COLS], int points[]) {
-  
+int choose_best_path(int field[][HEIGHT], int points[]) {
+
   // check in which row a move can actually be made
-  for (int row = 0; row < ROWS; row++) {
+  for (int row = 0; row < WIDTH; row++) {
     if (field[row][0] != 0) {
       printf("choose_best_path - row %d, field: %d\n", row, field[row][0]);
       points[row] = -10000;
@@ -110,18 +112,18 @@ int choose_best_path(int field[][COLS], int points[]) {
   }
 
   int max_points = max_number(points);
-  int indizes[ROWS];
+  int indizes[WIDTH];
   int count = 0;
-  for (int r = 0; r < ROWS; r++) {
-    if (points[r] == max_points) {
-      indizes[count++] = r;
+  for (int x = 0; x < WIDTH; x++) {
+    if (points[x] == max_points) {
+      indizes[count++] = x;
     }
   }
 
   if (debug_level > 1) {
     printf("choose_best_path - max_points: %d, count: %d, indizes:", max_points, count);
-    for (int r = 0; r < ROWS; r++) {
-      printf(" %d", indizes[r]);
+    for (int x = 0; x < WIDTH; x++) {
+      printf(" %d", indizes[x]);
     }
     printf("\n");
   }
@@ -132,8 +134,8 @@ int choose_best_path(int field[][COLS], int points[]) {
   // Debug output
   if (points && debug_level > 0) {
     printf("minmax - row: %d, points:", row);
-    for (int r = 0; r < ROWS; r++) {
-      printf(" %d", points[r]);
+    for (int x = 0; x < WIDTH; x++) {
+      printf(" %d", points[x]);
     }
     printf("\n");
   } else {
@@ -143,38 +145,40 @@ int choose_best_path(int field[][COLS], int points[]) {
 }
 
 
-int minmax_step(int old_field[][COLS], int player, int depth) {
-  if (debug_level > 1) {
-    printf("minmax_step - depth: %d, player: %d \n", depth, player);
-  }
-
-  int points[ROWS]; // indicates how good each path is; if the path is not finished yet, it gets 0 points
+int minmax_step(int old_field[][HEIGHT], int base_player, int current_player, int depth) {
+  int points[WIDTH]; // indicates how good each path is; if the path is not finished yet, it gets 0 points
   memset(points, 0, sizeof(points)); // initialize points to 0
 
   if (depth > MAX_DEPTH) {
-    return heuristik(old_field, player);
+    return heuristik(old_field, base_player);
   }
 
-  for (int row = 0; row < ROWS; row++) {
+  for (int row = 0; row < WIDTH; row++) {
 
-    int field[ROWS][COLS];
+    int field[WIDTH][HEIGHT];
+    printf("old_field: %d, row: %d\n", field[row][0], row);
     memcpy(field, old_field, sizeof(old_field)); // copy the field
 
     int win = 0;
 
     // Check if the row still has space
-    if (field[row][0] == 0) { 
+    printf("field: %d, row: %d\n", field[row][0], row);
+    if (field[row][0] == 0) {
       // play the next move
-      win = move(field, player, row);
+      win = move(field, current_player, row);
     }
     else {
       win = -1; // The row is already full, so its a draw
+    }
+    
+    if (debug_level > 1) {
+      printf("minmax_step - depth: %d, base_player: %d, current_player: %d, row: %d, win: %d\n", depth, base_player, current_player, row, win);
     }
 
 
     // No end of game reached yet
     if (win == 0) {
-      points[row] = minmax_step(field, player, depth + 1); // switch player
+      points[row] = minmax_step(field, base_player, (current_player % 2) + 1, depth + 1); // switch player
     }
     // Draw
     else if (win == -1) {
@@ -184,7 +188,7 @@ int minmax_step(int old_field[][COLS], int player, int depth) {
     else {
       // Points awarded for win or loss
       int point = 0;
-      if (win == player) {
+      if (win == base_player) {
         point = 1;
       } else {
         point = -1;
@@ -209,8 +213,8 @@ int minmax_step(int old_field[][COLS], int player, int depth) {
 }
 
 
-int load_player(int *player) {
-  if (scanf("%d", player) != 1) {
+int load_base_player(int *base_player) {
+  if (scanf("%d", base_player) != 1) {
     printf("Error reading input and loading player.\n");
     return 1;
   }
@@ -218,11 +222,11 @@ int load_player(int *player) {
 }
 
 
-int load_field(int field[][COLS]) {
-  for (int r = 0; r < ROWS; r++) {
-    for (int c = 0; c < COLS; c++) {
+int load_field(int field[][HEIGHT]) {
+  for (int x = 0; x < WIDTH; x++) {
+    for (int y = 0; y < HEIGHT; y++) {
       // load field from stdin
-      if (scanf("%d", &field[r][c]) != 1) {
+      if (scanf("%d", &field[x][y]) != 1) {
         printf("Error reading input and loading field.\n");
         return  1;
       }
@@ -232,11 +236,11 @@ int load_field(int field[][COLS]) {
 }
 
 
-int print_field(int field[][COLS]) {
+int print_field(int field[][HEIGHT]) {
   // Print the loaded field 
-  for (int r = 0; r < ROWS; r++) {
-    for (int c = 0; c < COLS; c++) {
-        printf("%d ", field[r][c]);
+  for (int y = 0; y < HEIGHT; y++) {
+    for (int x = 0; x < WIDTH; x++) {
+        printf("%d ", field[x][y]);
     }
     printf("\n");
   }
@@ -246,6 +250,8 @@ int print_field(int field[][COLS]) {
 
 int main(int argc, char *argv[]) {
   printf("calculating ...\n");
+  
+  srand(time(NULL)); // initialize random seed
 
   if (argc > 1) {
     debug_level = atoi(argv[1]);
@@ -255,14 +261,14 @@ int main(int argc, char *argv[]) {
     printf("Debug mode activated.\n");
   }
   
-  int player = 0;
-  
-  if (load_player(&player) != 0) {
+  int base_player = 0;  
+  if (load_base_player(&base_player) != 0) {
     printf("Error loading player.\n");
     return 1;
   }
+  int current_player = base_player;
 
-  int field[ROWS][COLS];
+  int field[WIDTH][HEIGHT];
   if (load_field(field) != 0) {
     return 1;
   }
@@ -271,7 +277,7 @@ int main(int argc, char *argv[]) {
     print_field(field);   
   }
 
-  int path = minmax_step(field, player, 0);
+  int path = minmax_step(field, base_player, current_player, 0);
    
   return 0;
 }

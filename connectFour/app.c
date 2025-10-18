@@ -1,8 +1,15 @@
 #include<stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-  int list[] =  {1, 2, 3, 4, 5, 6};
-  printf("sizeof test: %d\n", (sizeof(list) / sizeof(list[0])));
+  int a = 5;
+  int b = a;
+  b += 1;
+
+  printf("%d\n", a);
+  printf("%d\n", b);
+
 }

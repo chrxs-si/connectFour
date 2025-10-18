@@ -22,7 +22,7 @@ try:
   cf.field[0][0] = 2
 
 
-  data = '1 ' + ' '.join(str(cf.field[col][row]) for row in range(len(cf.field[0])) for col in range(len(cf.field)))
+  data = '1 ' + ' '.join(str(cf.field[row][col]) for row in range(len(cf.field)) for col in range(len(cf.field[0])))
 
   print(f"data {data}")
 
