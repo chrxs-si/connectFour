@@ -21,11 +21,16 @@ try:
   ergebnis = subprocess.run(
         [path, "True"],
         input=data,
-        check=True,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
+        check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
         capture_output=True,
         text=True
     )
-  print(ergebnis.stdout)  # Ausgabe der EXE
+  
+  stdout = ergebnis.stdout.strip()
+  tokens = stdout.split()
+  print(f"Output from EXE:\n {stdout}")
+  if len(tokens) > 0:
+    print(f"Return value: {tokens[-1]}")  # Ausgabe der EXE
   
 except subprocess.CalledProcessError as e:
     print(f"Fehler beim Starten der EXE: {e}")

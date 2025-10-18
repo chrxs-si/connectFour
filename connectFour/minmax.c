@@ -185,12 +185,23 @@ int choose_best_path(int field[ROWS][COLS], int points[]) {
 }
 
 
+int load_player(int *player) {
+  printf("Loading player ...\n");
+  if (scanf("%d", &player) != 1) {
+    printf("Error reading input and loading player.\n");
+    return 1;
+  }
+  return 0;
+}
+
+
 int load_field(int field[ROWS][COLS]) {
+  printf("Field loading ...\n");
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
-      // load field from stdinW
+      // load field from stdin
       if (scanf("%d", &field[r][c]) != 1) {
-        fprintf(stderr, "Error reading input and loading field.\n");
+        printf("Error reading input and loading field.\n");
         return  1;
       }
     }
@@ -203,7 +214,7 @@ int print_field(int field[ROWS][COLS]) {
   // Print the loaded field 
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
-        printf("%d ", &field[r][c]);
+        printf("%d ", field[r][c]);
     }
     printf("\n");
   }
@@ -215,12 +226,19 @@ int print_field(int field[ROWS][COLS]) {
 
 
 int main(int argc, char *argv[]) {
-  printf("calculating ...");
+  printf("calculating ...\n");
 
   bool debug = (argc > 1 && strcmp(argv[1], "True") == 0);
 
-  int field[ROWS][COLS];
+  printf("Debug mode: %s\n", debug ? "True" : "False");
 
+  int player = 0;
+  if (!load_player(&player)) {
+    return 1;
+  }
+  printf("Player: %d\n", player);
+
+  int field[ROWS][COLS];
   if (!load_field(field)) {
     return 1;
   }
@@ -229,7 +247,8 @@ int main(int argc, char *argv[]) {
     print_field(field);   
   }
 
-  int path = choose_best_path(field, NULL);
+  int path = choose_best_path(field, minmax_step(field, 1, 0));
+  printf("\n%d", path);
    
-  return path;
+  return 0;
 }
