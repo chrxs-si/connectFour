@@ -9,7 +9,7 @@
 
 int max_number(int list[]) {
   int max = list[0];
-  for (int i = 1; i < (sizeof(list) / sizeof(list[0])); i++) {
+  for (int i = 0; i < (sizeof(list) / sizeof(list[0])); i++) {
     if (list[i] > max) {
       max = list[i];
     }
@@ -17,9 +17,11 @@ int max_number(int list[]) {
   return max;
 }
 
+
+
 int min_number(int list[]) {
   int min = list[0];
-  for (int i = 1; i < (sizeof(list) / sizeof(list[0])); i++) {
+  for (int i = 0; i < (sizeof(list) / sizeof(list[0])); i++) {
     if (list[i] < min) {
       min = list[i];
     }
@@ -95,63 +97,6 @@ int heuristik(int field[ROWS][COLS], int player) {
 }
 
 
-int minmax_step(int old_field[ROWS][COLS], int player, int depth) {
-  int points[ROWS]; // indicates how good each path is; if the path is not finished yet, it gets 0 points
-  memset(points, 0, sizeof(points)); // initialize points to 0
-
-  if (depth > MAX_DEPTH) {
-    return heuristik(&old_field, player);
-  }
-
-  for (int row = 0; row < ROWS; row++) {
-
-    int field[ROWS][COLS];
-    memcpy(&field, &old_field, sizeof(old_field)); // copy the field
-
-    int win = 0;
-
-    // Check if the row still has space
-    if (&field[row][0] == 0) { 
-      // play the next move
-      win = move(field, player, row);
-    }
-    else {
-      win = -1; // The row is already full, so its a draw
-    }
-
-
-    // No end of game reached yet
-    if (win == 0) {
-      points[row] = minmax_step(field, -player, depth + 1); // switch player
-    }
-    // Draw
-    else if (win == -1) {
-      points[row] = 0;
-    }
-    // A player has won
-    else {
-      // Points awarded for win or loss
-      int point = 0;
-      if (win == player) {
-        point = 1;
-      } else {
-        point = -1;
-      }      
-      points[row] = point;
-      break;
-    }
-  }
-
-  if (depth % 2 == 0) {
-    // Player's turn: maximize
-    return max_number(points);
-  } else {
-    // Opponent's turn: minimize
-    return min_number(points);
-  }
-}
-
-
 int choose_best_path(int field[ROWS][COLS], int points[]) {
   
   // check in which row a move can actually be made
@@ -185,9 +130,71 @@ int choose_best_path(int field[ROWS][COLS], int points[]) {
 }
 
 
+int minmax_step(int old_field[ROWS][COLS], int player, int depth) {
+  int points[ROWS]; // indicates how good each path is; if the path is not finished yet, it gets 0 points
+  memset(points, 0, sizeof(points)); // initialize points to 0
+
+  if (depth > MAX_DEPTH) {
+    return heuristik(old_field, player);
+  }
+
+  for (int row = 0; row < ROWS; row++) {
+
+    int field[ROWS][COLS];
+    memcpy(field, old_field, sizeof(old_field)); // copy the field
+
+    int win = 0;
+
+    // Check if the row still has space
+    if (field[row][0] == 0) { 
+      // play the next move
+      win = move(field, player, row);
+    }
+    else {
+      win = -1; // The row is already full, so its a draw
+    }
+
+
+    // No end of game reached yet
+    if (win == 0) {
+      points[row] = minmax_step(field, -player, depth + 1); // switch player
+    }
+    // Draw
+    else if (win == -1) {
+      points[row] = 0;
+    }
+    // A player has won
+    else {
+      // Points awarded for win or loss
+      int point = 0;
+      if (win == player) {
+        point = 1;
+      } else {
+        point = -1;
+      }      
+      points[row] = point;
+      break;
+    }
+  }
+
+  if (depth == 0) {
+    int path = choose_best_path(old_field, points);
+    return path;
+  }
+
+  if (depth % 2 == 0) {
+    // Player's turn: maximize
+    return max_number(points);
+  } else {
+    // Opponent's turn: minimize
+    return min_number(points);
+  }
+}
+
+
 int load_player(int *player) {
   printf("Loading player ...\n");
-  if (scanf("%d", &player) != 1) {
+  if (scanf("%d", player) != 1) {
     printf("Error reading input and loading player.\n");
     return 1;
   }
@@ -200,7 +207,7 @@ int load_field(int field[ROWS][COLS]) {
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
       // load field from stdin
-      if (scanf("%d", &field[r][c]) != 1) {
+      if (scanf("%d", field[r][c]) != 1) {
         printf("Error reading input and loading field.\n");
         return  1;
       }
@@ -233,9 +240,10 @@ int main(int argc, char *argv[]) {
   printf("Debug mode: %s\n", debug ? "True" : "False");
 
   int player = 0;
-  if (!load_player(&player)) {
+  if (!load_player(player)) {
     return 1;
   }
+
   printf("Player: %d\n", player);
 
   int field[ROWS][COLS];
@@ -247,7 +255,7 @@ int main(int argc, char *argv[]) {
     print_field(field);   
   }
 
-  int path = choose_best_path(field, minmax_step(field, 1, 0));
+  int path = minmax_step(field, player, 0);
   printf("\n%d", path);
    
   return 0;
