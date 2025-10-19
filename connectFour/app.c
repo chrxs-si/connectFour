@@ -7,6 +7,7 @@
 int main(int argc, char *argv[]) {
   int a = 5;
   int b = a;
+  b *= -1;
   b += 1;
 
   printf("%d\n", a);

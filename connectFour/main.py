@@ -25,6 +25,7 @@ def getMinMaxMove_c(cf):
     
     stdout = ergebnis.stdout.strip()
     tokens = stdout.split()
+    print(f"STDOUT:\n{stdout}")
     print(tokens[-2])
     path = int(tokens[-1])
 

@@ -107,13 +107,22 @@ int move(int field[][HEIGHT], int current_player, int row) {
       return check_win(field, current_player, 4); // successful move
     }
   }
-  
+
   return -1; // column is full
 }
 
 
 int heuristik(int field[][HEIGHT], int player) {
+  int base_player_check = check_win(field, player, 3);
+  int opponent_player_check = check_win(field, (player % 2) + 1, 3);
+  if (base_player_check > 0) {
+    return 1;
+  } else if (base_player_check > 0) {
+    return -1;
+  }
+
   return 0;
+
 }
 
 
@@ -164,8 +173,8 @@ int choose_best_path(int field[][HEIGHT], int points[]) {
 
 
 int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_player, int depth) {
-  int points[WIDTH]; // indicates how good each path is; if the path is not finished yet, it gets 0 points
-  memset(points, 0, sizeof(points)); // initialize points to 0
+  int points_paths[WIDTH]; // indicates how good each path is; if the path is not finished yet, it gets 0 points
+  memset(points_paths, 0, sizeof(points_paths)); // initialize points to 0
 
   if (depth > MAX_DEPTH) {
     return heuristik(old_field, base_player);
@@ -174,13 +183,10 @@ int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_playe
   for (int row = 0; row < WIDTH; row++) {
 
     int field[WIDTH][HEIGHT];
-    printf("old_field[%d][0]: %d\n", row, field[row][0]);
     memcpy(field, old_field, sizeof(int) * WIDTH * HEIGHT); // copy the field
 
     int win = 0;
 
-    // Check if the row still has space
-    printf("field: %d, row: %d\n", field[row][0], row);
     // play the next move
     win = move(field, current_player, row);
     
@@ -188,40 +194,40 @@ int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_playe
       printf("minmax_step - depth: %d, base_player: %d, current_player: %d, row: %d, win: %d\n", depth, base_player, current_player, row, win);
     }
 
-
     // No end of game reached yet
     if (win == 0) {
-      points[row] = minmax_step(field, base_player, (current_player % 2) + 1, depth + 1); // switch player
+      points_paths[row] = minmax_step(field, base_player, (current_player % 2) + 1, depth + 1); // switch player
     }
     // Draw
     else if (win == -1) {
-      points[row] = 0;
+      points_paths[row] = 0;
     }
     // A player has won
     else {
       // Points awarded for win or loss
-      int point = MAX_DEPTH - depth + 2;
+      int points;
       if (win == base_player) {
-        point *= 1; // more points for winning sooner
+        points =  MAX_DEPTH - depth + 2; // more points for winning sooner
       } else {
-        point *= -1;
+        points = -(MAX_DEPTH - depth + 2);
       }      
-      points[row] = point;
+      //printf("\npoints: %d", points);
+      points_paths[row] = points;
       break;
     }
   }
 
   if (depth == 0) {
-    int path = choose_best_path(old_field, points);
+    int path = choose_best_path(old_field, points_paths);
     return path;
   }
 
   if (depth % 2 == 0) {
     // Player's turn: maximize
-    return max_number(points, WIDTH);
+    return max_number(points_paths, WIDTH);
   } else {
     // Opponent's turn: minimize
-    return min_number(points, WIDTH);
+    return min_number(points_paths, WIDTH);
   }
 }
 
