@@ -32,32 +32,52 @@ int min_number(int list[], int size) {
 }
 
 
-int check_win(int field[][HEIGHT], int player) {
+int check_win(int field[][HEIGHT], int player, int needed_length) {
   // Check horizontal, vertical, and diagonal for a win
   for (int x = 0; x < WIDTH; x++) {
     for (int y = 0; y < HEIGHT; y++) {
       // Check vertical
-      if (y <= HEIGHT - 4) {
-        if (field[x][y] == player && field[x][y+1] == player && field[x][y+2] == player && field[x][y+3] == player) {
+      int i = 0;
+      while (field[x][y + i] == player) {
+        i++;
+        if (i >= needed_length) {
           return player;
+        }
+        if (y + i >= HEIGHT) {
+          break;
         }
       }
       // Check horizontal
-      if (x <= WIDTH - 4) {
-        if (field[x][y] == player && field[x+1][y] == player && field[x+2][y] == player && field[x+3][y] == player) {
+      i = 0;
+      while (field[x + i][y] == player) {
+        i++;
+        if (i >= needed_length) {
           return player;
+        }
+        if (x + i >= WIDTH) {
+          break;
         }
       }
       // Check diagonal (bottom-left to top-right)
-      if (x <= WIDTH - 4 && y <= HEIGHT - 4) {
-        if (field[x][y] == player && field[x+1][y+1] == player && field[x+2][y+2] == player && field[x+3][y+3] == player) {
+      i = 0;
+      while (field[x + 1][y + i] == player) {
+        i++;
+        if (i >= needed_length) {
           return player;
+        }
+        if (y + i >= HEIGHT || x + i >= WIDTH) {
+          break;
         }
       }
       // Check diagonal (top-left to bottom-right)
-      if (x >= 3 && y <= HEIGHT - 4) {
-        if (field[x][y] == player && field[x-1][y+1] == player && field[x-2][y+2] == player && field[x-3][y+3] == player) {
+      i = 0;
+      while (field[x - 1][y + i] == player) {
+        i++;
+        if (i >= needed_length) {
           return player;
+        }
+        if (y + i >= HEIGHT || x - i < 0) {
+          break;
         }
       }
     }
@@ -81,16 +101,13 @@ int check_win(int field[][HEIGHT], int player) {
 
 int move(int field[][HEIGHT], int current_player, int row) {
 
-  printf("%d\n", row);
-
   for (int i = HEIGHT - 1; i >= 0; i--) {
     if (field[row][i] == 0) {
       field[row][i] = current_player;
-      return check_win(field, current_player); // successful move
+      return check_win(field, current_player, 4); // successful move
     }
   }
   
-  printf("Column is full!\n");
   return -1; // column is full
 }
 

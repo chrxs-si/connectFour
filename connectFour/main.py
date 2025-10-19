@@ -40,8 +40,8 @@ def game_thread():
       cf.startScreen()
 
 # set player types here
-# Options: human, minmax, minmax_c, random, montecarlo, neuroevolution
-player = ['human', 'minmax']
+# Options: human, minmax_py, minmax_c, random, montecarlo, neuroevolution
+player = ['human', 'minmax_c']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
@@ -72,7 +72,7 @@ for round in range(1):
           if event.type == pygame.QUIT:
             action = True
             cf.active = False
-    elif player[cf.currentPlayer - 1] == 'minmax':
+    elif player[cf.currentPlayer - 1] == 'minmax_py':
       cf.chooseRow(getMinMaxMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'minmax_c':
       cf.chooseRow(getMinMaxMove_c(copyGameWithoutPyGame(cf)))
