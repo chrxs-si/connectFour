@@ -27,7 +27,7 @@ try:
   print(f"data {data}")
 
   ergebnis = subprocess.run(
-        [path, " 0"],
+        [path, "2 0"],
         input=data,
         check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
         capture_output=True,
