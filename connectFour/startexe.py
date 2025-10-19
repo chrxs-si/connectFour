@@ -8,9 +8,9 @@ print("start")
 try:
   cf = connectFour(False)
 
-  cf.field[6][5] = 1
-  cf.field[6][4] = 1
-  cf.field[6][3] = 1
+  cf.field[5][5] = 1
+  cf.field[5][4] = 1
+  cf.field[5][3] = 1
   cf.field[3][5] = 2
   cf.field[4][5] = 2
 
@@ -27,7 +27,7 @@ try:
   print(f"data {data}")
 
   ergebnis = subprocess.run(
-        [path, " 2"],
+        [path, " 0"],
         input=data,
         check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
         capture_output=True,
@@ -37,7 +37,8 @@ try:
   
   stdout = ergebnis.stdout.strip()
   tokens = stdout.split()
-  print(f"Output from EXE:\n {stdout}")
+  print(f"STDOUT:\n{stdout}")
+  #print(f"Output from EXE:\n {stdout}")
   if len(tokens) > 0:
     print(f"Return value: {tokens[-1]}")  # Ausgabe der EXE
   

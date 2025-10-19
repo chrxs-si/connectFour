@@ -4,15 +4,15 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define MAX_DEPTH 2
+#define MAX_DEPTH 6
 #define WIDTH 7
 #define HEIGHT 6
 
 int debug_level = 0;
 
-int max_number(int list[]) {
+int max_number(int list[], int size) {
   int max = list[0];
-  for (int i = 0; i < (sizeof(list) / sizeof(list[0])); i++) {
+  for (int i = 0; i < size; i++) {
     if (list[i] > max) {
       max = list[i];
     }
@@ -21,9 +21,9 @@ int max_number(int list[]) {
 }
 
 
-int min_number(int list[]) {
+int min_number(int list[], int size) {
   int min = list[0];
-  for (int i = 0; i < (sizeof(list) / sizeof(list[0])); i++) {
+  for (int i = 0; i < size; i++) {
     if (list[i] < min) {
       min = list[i];
     }
@@ -36,14 +36,13 @@ int check_win(int field[][HEIGHT], int player) {
   // Check horizontal, vertical, and diagonal for a win
   for (int x = 0; x < WIDTH; x++) {
     for (int y = 0; y < HEIGHT; y++) {
-      // Check horizontal
+      // Check vertical
       if (y <= HEIGHT - 4) {
-        int i = 0;
         if (field[x][y] == player && field[x][y+1] == player && field[x][y+2] == player && field[x][y+3] == player) {
           return player;
         }
       }
-      // Check vertical
+      // Check horizontal
       if (x <= WIDTH - 4) {
         if (field[x][y] == player && field[x+1][y] == player && field[x+2][y] == player && field[x+3][y] == player) {
           return player;
@@ -66,8 +65,8 @@ int check_win(int field[][HEIGHT], int player) {
 
   // Check for draw
   bool is_draw = true;
-  for (int row = 0; row < WIDTH; row++) {
-    if (field[row][0] == 0) {
+  for (int x = 0; x < WIDTH; x++) {
+    if (field[x][0] == 0) {
       is_draw = false;
       break;
     }
@@ -111,7 +110,7 @@ int choose_best_path(int field[][HEIGHT], int points[]) {
     }
   }
 
-  int max_points = max_number(points);
+  int max_points = max_number(points, WIDTH);
   int indizes[WIDTH];
   int count = 0;
   for (int x = 0; x < WIDTH; x++) {
@@ -132,20 +131,22 @@ int choose_best_path(int field[][HEIGHT], int points[]) {
   int row = indizes[rand() % count];
 
   // Debug output
-  if (points && debug_level > 0) {
+  if (debug_level > 0) {
     printf("minmax - row: %d, points:", row);
-    for (int x = 0; x < WIDTH; x++) {
-      printf(" %d", points[x]);
-    }
+
     printf("\n");
-  } else {
-    printf("minmax - row: %d, points: (null)\n", row);
+  }
+  if (points) {
+    printf("points:");
+    for (int x = 0; x < WIDTH; x++) {
+      printf("%d,", points[x]);
+    }
   }
   return row;
 }
 
 
-int minmax_step(int old_field[][HEIGHT], int base_player, int current_player, int depth) {
+int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_player, int depth) {
   int points[WIDTH]; // indicates how good each path is; if the path is not finished yet, it gets 0 points
   memset(points, 0, sizeof(points)); // initialize points to 0
 
@@ -156,20 +157,15 @@ int minmax_step(int old_field[][HEIGHT], int base_player, int current_player, in
   for (int row = 0; row < WIDTH; row++) {
 
     int field[WIDTH][HEIGHT];
-    printf("old_field: %d, row: %d\n", field[row][0], row);
-    memcpy(field, old_field, sizeof(old_field)); // copy the field
+    printf("old_field[%d][0]: %d\n", row, field[row][0]);
+    memcpy(field, old_field, sizeof(int) * WIDTH * HEIGHT); // copy the field
 
     int win = 0;
 
     // Check if the row still has space
     printf("field: %d, row: %d\n", field[row][0], row);
-    if (field[row][0] == 0) {
-      // play the next move
-      win = move(field, current_player, row);
-    }
-    else {
-      win = -1; // The row is already full, so its a draw
-    }
+    // play the next move
+    win = move(field, current_player, row);
     
     if (debug_level > 1) {
       printf("minmax_step - depth: %d, base_player: %d, current_player: %d, row: %d, win: %d\n", depth, base_player, current_player, row, win);
@@ -187,11 +183,11 @@ int minmax_step(int old_field[][HEIGHT], int base_player, int current_player, in
     // A player has won
     else {
       // Points awarded for win or loss
-      int point = 0;
+      int point = MAX_DEPTH - depth + 2;
       if (win == base_player) {
-        point = 1;
+        point *= 1; // more points for winning sooner
       } else {
-        point = -1;
+        point *= -1;
       }      
       points[row] = point;
       break;
@@ -205,10 +201,10 @@ int minmax_step(int old_field[][HEIGHT], int base_player, int current_player, in
 
   if (depth % 2 == 0) {
     // Player's turn: maximize
-    return max_number(points);
+    return max_number(points, WIDTH);
   } else {
     // Opponent's turn: minimize
-    return min_number(points);
+    return min_number(points, WIDTH);
   }
 }
 
@@ -278,6 +274,8 @@ int main(int argc, char *argv[]) {
   }
 
   int path = minmax_step(field, base_player, current_player, 0);
+
+  printf(" %d\n", path);
    
   return 0;
 }

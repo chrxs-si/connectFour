@@ -10,11 +10,37 @@ from minmax import getMinMaxMove
 from monteCarloTreeSearch import getMonteCarloTreeSearchMove
 from neuroevolution import getNeuroEvolutioneSearchMove
 
+def getMinMaxMove_c(cf):
+  path = "./connectFour/minmax.exe"
+  data = '1 ' + ' '.join(str(cf.field[row][col]) for row in range(len(cf.field)) for col in range(len(cf.field[0])))
+
+  try:
+    ergebnis = subprocess.run(
+          [path, " 0"],
+          input=data,
+          check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
+          capture_output=True,
+          text=True
+      )
+    
+    stdout = ergebnis.stdout.strip()
+    tokens = stdout.split()
+    print(tokens[-2])
+    path = int(tokens[-1])
+
+    return path
+    
+  except subprocess.CalledProcessError as e:
+      print(f"Fehler beim Starten der EXE: {e}")
+      print(f"Fehlerausgabe: \n{e.stderr}")
+  except FileNotFoundError:
+      print(f"Fehler: Die Datei {path} wurde nicht gefunden.")
+
 def game_thread():
       cf.startScreen()
 
 # set player types here
-# Options: human, minmax, random, montecarlo, neuroevolution
+# Options: human, minmax, minmax_c, random, montecarlo, neuroevolution
 player = ['human', 'minmax']
 
 playerTime = [0, 0]
@@ -48,6 +74,8 @@ for round in range(1):
             cf.active = False
     elif player[cf.currentPlayer - 1] == 'minmax':
       cf.chooseRow(getMinMaxMove(copyGameWithoutPyGame(cf)))
+    elif player[cf.currentPlayer - 1] == 'minmax_c':
+      cf.chooseRow(getMinMaxMove_c(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'random':
       cf.chooseRow(getRandomMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'montecarlo':
