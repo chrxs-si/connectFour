@@ -12,11 +12,11 @@ from neuroevolution import getNeuroEvolutioneSearchMove
 
 def getMinMaxMove_c(cf):
   path = "./connectFour/minmax.exe"
-  data = '1 ' + ' '.join(str(cf.field[row][col]) for row in range(len(cf.field)) for col in range(len(cf.field[0])))
+  data = str(cf.currentPlayer) + ' ' + ' '.join(str(cf.field[row][col]) for row in range(len(cf.field)) for col in range(len(cf.field[0])))
 
   try:
     ergebnis = subprocess.run(
-          [path, "2 0"], # [MAX_DEPTH] [debug_level]
+          [path, "6 0"], # [MAX_DEPTH] [debug_level]
           input=data,
           check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
           capture_output=True,
@@ -25,7 +25,7 @@ def getMinMaxMove_c(cf):
     
     stdout = ergebnis.stdout.strip()
     tokens = stdout.split()
-    print(f"STDOUT:\n{stdout}")
+    #print(f"STDOUT:\n{stdout}")
     print(tokens[-2])
     path = int(tokens[-1])
 

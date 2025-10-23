@@ -190,13 +190,13 @@ int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_playe
     int field[WIDTH][HEIGHT];
     memcpy(field, old_field, sizeof(int) * WIDTH * HEIGHT); // copy the field
 
-    int win ;
+    int win;
     if (field[row][0] == 0) {
       // play the next move
       move(field, current_player, row);
       win = check_win(field, current_player, 4);
     } else {
-      win = -2;
+      win = -1;
     }
     
     printf("win: %d\n", win);
@@ -279,6 +279,7 @@ int load_field(int field[][HEIGHT]) {
 
 int print_field(int field[][HEIGHT]) {
   // Print the loaded field 
+  printf("\nField:\n");
   for (int y = 0; y < HEIGHT; y++) {
     for (int x = 0; x < WIDTH; x++) {
         printf("%d ", field[x][y]);
@@ -320,11 +321,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  if (debug_level > 0) {
+  int path = minmax_step(field, base_player, current_player, 0);
+
+  if (debug_level >= 0) {
     print_field(field);   
   }
-
-  int path = minmax_step(field, base_player, current_player, 0);
 
   printf(" %d\n", path);
    
