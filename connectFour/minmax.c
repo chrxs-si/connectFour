@@ -99,6 +99,56 @@ int check_win(int field[][HEIGHT], int player, int needed_length) {
 }
 
 
+int check_win_with_last_row(int field[][HEIGHT], int player, int needed_length, int last_row) {
+  int direction_array[8][2] = {
+    {1, 0},  // Horizontal right
+    {-1, 0}, // Horizontal left
+    {0, 1},  // Vertical down
+    {0, -1},  // Vertical up
+    {1, 1},  // Diagonal up-right
+    {-1, -1}, // Diagonal down-left
+    {1, -1}, // Diagonal down-right
+    {1, -1}  // Diagonal up-left
+  };
+
+  int start_x = last_row;
+  int start_y = 0;
+  while (start_y < HEIGHT && field[start_x][start_y] == 0) {
+    start_y++;
+  }
+
+  for (int direction  = 0; direction < 8; direction++) {
+    int current_x = start_x;
+    int current_y = start_y;
+    int count = 0;
+
+    while (current_x >= 0 && current_x < WIDTH && current_y >= 0 && current_y < HEIGHT && field[current_x][current_y] == player) {
+      count++;
+      if (count >= needed_length) {
+        return player;
+      }
+      current_x += direction_array[direction][0];
+      current_y += direction_array[direction][1];
+    }
+  }
+
+
+  // Check for draw
+  bool is_draw = true;
+  for (int x = 0; x < WIDTH; x++) {
+    if (field[x][0] == 0) {
+      is_draw = false;
+      break;
+    }
+  }
+  if (is_draw) {
+    return -1; // Draw
+  }
+
+  return 0; // No win yet
+}
+
+
 int move(int field[][HEIGHT], int current_player, int row) {
 
   for (int i = HEIGHT - 1; i >= 0; i--) {
@@ -194,7 +244,7 @@ int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_playe
     if (field[row][0] == 0) {
       // play the next move
       move(field, current_player, row);
-      win = check_win(field, current_player, 4);
+      win = check_win_with_last_row(field, current_player, 4, row);
     } else {
       win = -1;
     }

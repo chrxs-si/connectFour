@@ -16,7 +16,7 @@ def getMinMaxMove_c(cf):
 
   try:
     ergebnis = subprocess.run(
-          [path, "6 0"], # [MAX_DEPTH] [debug_level]
+          [path, "7 0"], # [MAX_DEPTH] [debug_level]
           input=data,
           check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
           capture_output=True,
@@ -42,7 +42,7 @@ def game_thread():
 
 # set player types here
 # Options: human, minmax_py, minmax_c, random, montecarlo, neuroevolution
-player = ['human', 'minmax_c']
+player = ['montecarlo', 'minmax_c']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
@@ -50,7 +50,7 @@ playerMoves = [0, 0]
 points = [0, 0, 0, 0]
 
 # set game rounds
-for round in range(1):
+for round in range(3):
 
   cf = connectFour(True)
 
