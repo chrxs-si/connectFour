@@ -3,7 +3,7 @@ from copy import deepcopy
 from game import connectFour
 import math
 
-ITERATIONS = 1000
+ITERATIONS = 70
 
 class MCTSNode:
   def __init__(self, cf, parent=None, move=None):

@@ -17,24 +17,24 @@ def evaluateGameState(cf, player, row):
 
   points = 0
 
-  directions = [
-    [0, 1],
-    [-1, 1],
-    [-1, 0],
-    [-1, -1],
-    [0, -1],
-    [1, -1],
-    [1, 0]
+  axis_directions = [
+    [(0, 1),  (0, -1)],      # Horizontal
+    [(-1, 0), (1, 0)],        # Vertikal
+    [(-1, 1), (1, -1)],       # Diagonal /
+    [(-1, -1), (1, 1)]        # Diagonal \
   ]
-
-  for direction in directions:
-    for i in range(1, 3):
-      current_col = col+direction[1]*i
-      current_row = row+direction[0]*i
-      if current_col < 0 or current_col >= cf_hight: break
-      if current_row < 0 or current_row >= cf_wight: break
-      if cf.field[current_row][current_col] != player: break
-      else: points += i**3
+  for axis in axis_directions:
+    length = 0
+    for direction in axis:
+      for i in range(1, 4):
+        current_col = col+direction[1]*i
+        current_row = row+direction[0]*i
+        if current_col < 0 or current_col >= cf_hight: break
+        if current_row < 0 or current_row >= cf_wight: break
+        if cf.field[current_row][current_col] != player: break
+        length += 1
+    
+    points += 10 ** length
 
   return points
 
@@ -44,8 +44,8 @@ def evaluateMoveInRow(cf, row):
   win = cf.chooseRow(row)
 
   if win == -2: return -10000
-  if win == -1: 0
-  if win == player: return 50
+  if win == -1: return 0
+  if win == player: return 50000
   
   # no win yet
   points = evaluateGameState(cf, player, row)

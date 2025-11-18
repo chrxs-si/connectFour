@@ -42,8 +42,8 @@ def game_thread():
       cf.startScreen()
 
 # set player types here
-# Options: human, minmax_py, minmax_c, random, montecarlo, neuroevolution heuristik
-player = ['human', 'heuristik']
+# Options: human, minmax_py, minmax_c, random, montecarlo, neuroevolution, heuristik
+player = ['heuristik', 'montecarlo']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
@@ -51,7 +51,7 @@ playerMoves = [0, 0]
 points = [0, 0, 0, 0]
 
 # set game rounds
-for round in range(1):
+for round in range(10):
 
   cf = connectFour(True)
 
@@ -95,9 +95,13 @@ for round in range(1):
 
   # print game stats
   points[cf.win + 1] += 1
-  print(f'\nSpieler 1 ({player[0]}): {points[2]}, Spieler 2 ({player[1]}): {points[3]}, Unentschieden: {points[0]}')
-  print(f'durchschnittliche Züge pro Spiel: {sum(playerMoves) / (round + 1)}')
-  print(f'durchschnittliche Zeit pro Zug gesamt: Spieler 1 ({player[1]}): {playerTime[0] / playerMoves[0]:.2f} s, Spieler 2 ({player[0]}): {playerTime[1] / playerMoves[1]:.2f} s')
+  G,R,Y,C,B,RS = "\033[92m","\033[91m","\033[93m","\033[96m","\033[1m","\033[0m"
+  p1c = G if points[2] > points[3] else R if points[2] < points[3] else Y
+  p2c = G if points[3] > points[2] else R if points[3] < points[2] else Y
+  print(f"\n{p1c}{B}Spieler 1 ({player[0]}): {points[2]}{RS}, {p2c}{B}Spieler 2 ({player[1]}): {points[3]}{RS}, {Y}Unentschieden: {B}{points[0]}{RS}")
+  print(f"{C}durchschnittliche Züge pro Spiel: {RS}{sum(playerMoves)/(round+1):.2f}")
+  print(f"{C}durchschnittliche Zeit pro Zug gesamt:{RS} Spieler 1 ({player[0]}): {B}{playerTime[0]/playerMoves[0]:.2f} s{RS}, Spieler 2 ({player[1]}): {B}{playerTime[1]/playerMoves[1]:.2f} s{RS}")
+
   print('-'*20)
 
 # wait to close game window
