@@ -9,6 +9,7 @@ from rnd import getRandomMove
 from minmax import getMinMaxMove
 from monteCarloTreeSearch import getMonteCarloTreeSearchMove
 from neuroevolution import getNeuroEvolutioneSearchMove
+from heuristik import getHeuristikMove
 
 def getMinMaxMove_c(cf):
   path = "./connectFour/minmax.exe"
@@ -41,8 +42,8 @@ def game_thread():
       cf.startScreen()
 
 # set player types here
-# Options: human, minmax_py, minmax_c, random, montecarlo, neuroevolution
-player = ['montecarlo', 'minmax_c']
+# Options: human, minmax_py, minmax_c, random, montecarlo, neuroevolution heuristik
+player = ['human', 'heuristik']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
@@ -50,7 +51,7 @@ playerMoves = [0, 0]
 points = [0, 0, 0, 0]
 
 # set game rounds
-for round in range(3):
+for round in range(1):
 
   cf = connectFour(True)
 
@@ -83,6 +84,8 @@ for round in range(3):
       cf.chooseRow(getMonteCarloTreeSearchMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'neuroevolution':
       cf.chooseRow(getNeuroEvolutioneSearchMove(copyGameWithoutPyGame(cf)))
+    elif player[cf.currentPlayer - 1] == 'heuristik':
+      cf.chooseRow(getHeuristikMove(copyGameWithoutPyGame(cf)))
 
     endTime = time.time()
 
