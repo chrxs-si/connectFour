@@ -4,13 +4,17 @@ from copy import deepcopy
 
 MAX_DEPTH = 4  # Maximum depth for the Minimax algorithm
 
-def minmaxStep(oldcf, player, depth=0):
+def minmaxStep(oldcf, player, depth=0, alpha=float('-inf'), beta=float('inf')):
   pointPaths = [] # indicates how good each path is; if the path is not finished yet, it gets 0 points
 
   if depth > MAX_DEPTH:
     return heuristik(oldcf, player)
   
   #print(oldcf.field)
+
+  isMaxStep = (depth % 2 == 0)
+
+  bestValue = float('-inf') if isMaxStep else float('inf')
 
   for row in range(len(oldcf.field)):
 
@@ -27,25 +31,49 @@ def minmaxStep(oldcf, player, depth=0):
 
     # No end of game reached yet
     if win == 0:
-      pointPaths.append(minmaxStep(cf, player, depth + 1))
+      value = minmaxStep(cf, player, depth + 1, alpha, beta)
     # Draw
     elif win == -1:
-      pointPaths.append(0)
+      value = 0
     # A player has won
     else:
-      point = (1 if win == player else -1) * (MAX_DEPTH - depth + 2)   # Points awarded for win or loss
-      pointPaths.append(point)
+      value = (1 if win == player else -1) * (MAX_DEPTH - depth + 2)   # Points awarded for win or loss
       break
 
-  if (depth == 0):
-    return pointPaths
+    # Maximierer
+    if isMaxStep:
+        bestValue = max(bestValue, value)
+        alpha = max(alpha, bestValue)
+    # Minimierer
+    else:
+        bestValue = min(bestValue, value)
+        beta = min(beta, bestValue)
+
+    # Pruning
+    if beta <= alpha:
+        break
   
-  if depth % 2 == 0:
-    # Player's turn: maximize
-    return max(pointPaths)
+  if depth > 0:
+      return bestValue
   else:
-    # Opponent's turn: minimize
-    return min(pointPaths)
+      # Obere Ebene: für jede mögliche Spalte Bewertung berechnen
+      move_values = []
+
+      for i in range(len(oldcf.field)):
+          # Wenn die Spalte voll ist → extrem schlechter Wert
+          if oldcf.field[i][0] != 0:
+              move_values.append(-10000)
+              continue
+
+          # Board kopieren und Zug ausführen
+          newcf = deepcopy(oldcf)
+          newcf.chooseRow(i)
+
+          # Bewertung dieses Zuges berechnen
+          value = minmaxStep(newcf, player, 1, alpha, beta)
+          move_values.append(value)
+
+      return move_values
 
 def heuristik(cf, player):
   cf.winner_lenght = 3
@@ -67,8 +95,8 @@ def chooseBestPath(cf, points):
   print(f'minmax - row: {row}, points: {points}')
   return row
 
-def getMinMaxMove(cf):
+def getMinMaxAlphaBetaMove(cf):
   print('calculating ...')
-  path = chooseBestPath(cf, minmaxStep(cf, cf.currentPlayer))
+  path = chooseBestPath(cf, minmaxStep(cf, cf.currentPlayer, float('-inf'), float('inf')))
 
   return path

@@ -10,6 +10,7 @@ from minmax import getMinMaxMove
 from monteCarloTreeSearch import getMonteCarloTreeSearchMove
 from neuroevolution import getNeuroEvolutioneSearchMove
 from heuristik import getHeuristikMove
+from minmax_alpha_beta import getMinMaxAlphaBetaMove
 
 def getMinMaxMove_c(cf):
   path = "./connectFour/minmax.exe"
@@ -42,8 +43,8 @@ def game_thread():
       cf.startScreen()
 
 # set player types here
-# Options: human, minmax_py, minmax_c, random, montecarlo, neuroevolution, heuristik
-player = ['heuristik', 'montecarlo']
+# Options: human, minmax_py, minmax_c, minmax_py_alpha_beta, random, montecarlo, neuroevolution, heuristik
+player = ['minmax_py', 'minmax_py_alpha_beta']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
@@ -78,6 +79,8 @@ for round in range(10):
       cf.chooseRow(getMinMaxMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'minmax_c':
       cf.chooseRow(getMinMaxMove_c(copyGameWithoutPyGame(cf)))
+    elif player[cf.currentPlayer - 1] == 'minmax_py_alpha_beta':
+      cf.chooseRow(getMinMaxAlphaBetaMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'random':
       cf.chooseRow(getRandomMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'montecarlo':
