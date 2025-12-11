@@ -97,6 +97,6 @@ def chooseBestPath(cf, points):
 
 def getMinMaxAlphaBetaMove(cf):
   print('calculating ...')
-  path = chooseBestPath(cf, minmaxStep(cf, cf.currentPlayer, float('-inf'), float('inf')))
+  path = chooseBestPath(cf, minmaxStep(cf, cf.currentPlayer, 0, float('-inf'), float('inf')))
 
   return path

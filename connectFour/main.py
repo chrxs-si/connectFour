@@ -44,7 +44,7 @@ def game_thread():
 
 # set player types here
 # Options: human, minmax_py, minmax_c, minmax_py_alpha_beta, random, montecarlo, neuroevolution, heuristik
-player = ['minmax_py', 'minmax_py_alpha_beta']
+player = ['montecarlo', 'minmax_c']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]

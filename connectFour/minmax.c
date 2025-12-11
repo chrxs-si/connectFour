@@ -1,3 +1,6 @@
+// Improvments: Deutlich verbesserte Heuriostik-Funktionen für MinMax
+//               : Schnellere Prüfung auf Gewinn
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,7 +41,7 @@ int check_win(int field[][HEIGHT], int player, int needed_length) {
     for (int y = 0; y < HEIGHT; y++) {
       // Check vertical
       int i = 0;
-      while (field[x][y + i] == player) {
+      while (y+i < HEIGHT && field[x][y + i] == player) {
         i++;
         if (i >= needed_length) {
           return player;
@@ -49,7 +52,7 @@ int check_win(int field[][HEIGHT], int player, int needed_length) {
       }
       // Check horizontal
       i = 0;
-      while (field[x + i][y] == player) {
+      while (x+i < WIDTH && field[x + i][y] == player) {
         i++;
         if (i >= needed_length) {
           return player;
@@ -60,7 +63,7 @@ int check_win(int field[][HEIGHT], int player, int needed_length) {
       }
       // Check diagonal (bottom-left to top-right)
       i = 0;
-      while (field[x + i][y + i] == player) {
+      while (x+i < WIDTH && y+i < HEIGHT && field[x + i][y + i] == player) {
         i++;
         if (i >= needed_length) {
           return player;
@@ -71,7 +74,7 @@ int check_win(int field[][HEIGHT], int player, int needed_length) {
       }
       // Check diagonal (top-left to bottom-right)
       i = 0;
-      while (field[x - i][y + i] == player) {
+      while (x-i >= 0 && y+i < HEIGHT && field[x - i][y + i] == player) {
         i++;
         if (i >= needed_length) {
           return player;
@@ -99,53 +102,45 @@ int check_win(int field[][HEIGHT], int player, int needed_length) {
 }
 
 
-int check_win_with_last_row(int field[][HEIGHT], int player, int needed_length, int last_row) {
-  int direction_array[8][2] = {
-    {1, 0},  // Horizontal right
-    {-1, 0}, // Horizontal left
-    {0, 1},  // Vertical down
-    {0, -1},  // Vertical up
-    {1, 1},  // Diagonal up-right
-    {-1, -1}, // Diagonal down-left
-    {1, -1}, // Diagonal down-right
-    {1, -1}  // Diagonal up-left
+int check_win_with_last_row(int field[][HEIGHT], int player, int needed_length, int last_x, int last_y) 
+{
+  int dirs[4][2][2] = {
+    {{ 1,  0}, {-1,  0}}, // Horizontal
+    {{ 0,  1}, { 0, -1}}, // Vertikal
+    {{ 1,  1}, {-1, -1}}, // Diagonal
+    {{ 1, -1}, {-1,  1}}, // Diagonal
   };
 
-  int start_x = last_row;
-  int start_y = 0;
-  while (start_y < HEIGHT && field[start_x][start_y] == 0) {
-    start_y++;
-  }
+  for (int d = 0; d < 4; d++) {
+    int count = 1;  // Startpunkt zählt
 
-  for (int direction  = 0; direction < 8; direction++) {
-    int current_x = start_x;
-    int current_y = start_y;
-    int count = 0;
+    // beide Richtungen der Achse ablaufen
+    for (int s = 0; s < 2; s++) {
+      int dx = dirs[d][s][0];
+      int dy = dirs[d][s][1];
+      int x = last_x + dx;
+      int y = last_y + dy;
 
-    while (current_x >= 0 && current_x < WIDTH && current_y >= 0 && current_y < HEIGHT && field[current_x][current_y] == player) {
-      count++;
-      if (count >= needed_length) {
-        return player;
+      while (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT && field[x][y] == player) 
+      {
+        count++;
+        x += dx;
+        y += dy;
       }
-      current_x += direction_array[direction][0];
-      current_y += direction_array[direction][1];
     }
+
+    // Gewinn gefunden
+    if (count >= needed_length)
+      return player;
   }
 
-
-  // Check for draw
-  bool is_draw = true;
+  // Unentschieden prüfen
   for (int x = 0; x < WIDTH; x++) {
-    if (field[x][0] == 0) {
-      is_draw = false;
-      break;
-    }
-  }
-  if (is_draw) {
-    return -1; // Draw
+    if (field[x][0] == 0)
+      return 0; // kein Draw, Spiel läuft
   }
 
-  return 0; // No win yet
+  return -1; // Draw
 }
 
 
@@ -154,26 +149,110 @@ int move(int field[][HEIGHT], int current_player, int row) {
   for (int i = HEIGHT - 1; i >= 0; i--) {
     if (field[row][i] == 0) {
       field[row][i] = current_player;
-      return 0;
+      return i; // return the row where the piece was placed
     }
   }
 
   return -1; // column is full
 }
 
+// Heuristik-Funktionen
+int evaluate_window(int window[4], int player) {
+    int opponent = (player % 2) + 1;
+    int count_player = 0;
+    int count_opponent = 0;
+    int count_empty = 0;
+
+    for (int i = 0; i < 4; i++) {
+        if (window[i] == player) count_player++;
+        else if (window[i] == opponent) count_opponent++;
+        else count_empty++;
+    }
+
+    int score = 0;
+
+    if (count_player == 4) score += 10000;
+    else if (count_player == 3 && count_empty == 1) score += 100;
+    else if (count_player == 2 && count_empty == 2) score += 10;
+
+    if (count_opponent == 4) score -= 10000;
+    else if (count_opponent == 3 && count_empty == 1) score -= 100;
+    else if (count_opponent == 2 && count_empty == 2) score -= 10;
+
+    return score;
+}
+
+int score_horizontal(int field[][HEIGHT], int player) {
+    int score = 0;
+    int window[4];
+
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH - 3; x++) {
+            for (int i = 0; i < 4; i++) window[i] = field[x + i][y];
+            score += evaluate_window(window, player);
+        }
+    }
+
+    return score;
+}
+
+int score_vertical(int field[][HEIGHT], int player) {
+    int score = 0;
+    int window[4];
+
+    for (int x = 0; x < WIDTH; x++) {
+        for (int y = 0; y < HEIGHT - 3; y++) {
+            for (int i = 0; i < 4; i++) window[i] = field[x][y + i];
+            score += evaluate_window(window, player);
+        }
+    }
+
+    return score;
+}
+
+int score_diagonal_up(int field[][HEIGHT], int player) {
+    int score = 0;
+    int window[4];
+
+    for (int x = 0; x < WIDTH - 3; x++) {
+        for (int y = 3; y < HEIGHT; y++) {
+            for (int i = 0; i < 4; i++) window[i] = field[x + i][y - i];
+            score += evaluate_window(window, player);
+        }
+    }
+
+    return score;
+}
+
+int score_diagonal_down(int field[][HEIGHT], int player) {
+    int score = 0;
+    int window[4];
+
+    for (int x = 0; x < WIDTH - 3; x++) {
+        for (int y = 0; y < HEIGHT - 3; y++) {
+            for (int i = 0; i < 4; i++) window[i] = field[x + i][y + i];
+            score += evaluate_window(window, player);
+        }
+    }
+
+    return score;
+}
 
 int heuristik(int field[][HEIGHT], int player) {
-  int opponent_player = (player % 2) + 1;
-  int base_player_check = check_win(field, player, 3);
-  int opponent_player_check = check_win(field, opponent_player, 3);
-  if (base_player_check == player) {
-    return 1;
-  } else if (base_player_check == opponent_player) {
-    return -1;
-  }
+    int opponent = (player % 2) + 1;
 
-  return 0;
+    // Harte Win-Checks für schnelle Pruning-Entscheidungen
+    if (check_win(field, player, 4) == player)  return  100000;
+    if (check_win(field, opponent, 4) == opponent) return -100000;
 
+    int score = 0;
+
+    score += score_horizontal(field, player);
+    score += score_vertical(field, player);
+    score += score_diagonal_up(field, player);
+    score += score_diagonal_down(field, player);
+
+    return score;
 }
 
 
@@ -183,7 +262,7 @@ int choose_best_path(int field[][HEIGHT], int points[]) {
   for (int row = 0; row < WIDTH; row++) {
     if (field[row][0] != 0) {
       printf("choose_best_path - row %d, field: %d\n", row, field[row][0]);
-      points[row] = -10000;
+      points[row] = -1000000; // column is full, cannot choose this path
     }
   }
 
@@ -198,7 +277,7 @@ int choose_best_path(int field[][HEIGHT], int points[]) {
 
   if (debug_level > 1) {
     printf("choose_best_path - max_points: %d, count: %d, indizes:", max_point, count);
-    for (int x = 0; x < WIDTH; x++) {
+    for (int x = 0; x < count; x++) {
       printf(" %d", indizes[x]);
     }
     printf("\n");
@@ -231,7 +310,7 @@ int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_playe
   }
 
 
-  if (depth > MAX_DEPTH) {
+  if (depth >= MAX_DEPTH) {
     return heuristik(old_field, base_player);
   }
 
@@ -243,16 +322,14 @@ int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_playe
     int win;
     if (field[row][0] == 0) {
       // play the next move
-      move(field, current_player, row);
-      win = check_win_with_last_row(field, current_player, 4, row);
+      int last_y = move(field, current_player, row);
+      win = check_win_with_last_row(field, current_player, 4, row, last_y);
     } else {
       win = -1;
     }
-    
-    printf("win: %d\n", win);
 
-    if (debug_level > 1 || true) {
-      // printf("minmax_step - depth: %d, base_player: %d, current_player: %d, row: %d, win: %d\n", depth, base_player, current_player, row, win);
+    if (debug_level > 1) {
+      printf("minmax_step - depth: %d, base_player: %d, current_player: %d, row: %d, win: %d\n", depth, base_player, current_player, row, win);
     }
 
     // No end of game reached yet
@@ -265,16 +342,16 @@ int minmax_step(int old_field[WIDTH][HEIGHT], int base_player, int current_playe
     }
     // not allowed
     else if (win == -2) {
-      points_paths[row] = -9999;
+      points_paths[row] = -1000000;
     }
     // A player has won
     else {
       // Points awarded for win or loss
       int points;
       if (win == base_player) {
-        points =  MAX_DEPTH - depth + 2; // more points for winning sooner
+        points =  100000 - depth; // more points for winning sooner
       } else {
-        points = -(MAX_DEPTH - depth + 2);
+        points = -(100000 - depth + 2);
         printf("!points: %d\n", points);
       }      
       //printf("\npoints: %d", points);
