@@ -18,7 +18,7 @@ def getMinMaxMove_c(cf):
 
   try:
     ergebnis = subprocess.run(
-          [path, "7 0"], # [MAX_DEPTH] [debug_level]
+          [path, "9 0"], # [MAX_DEPTH] [debug_level]
           input=data,
           check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
           capture_output=True,
@@ -39,12 +39,41 @@ def getMinMaxMove_c(cf):
   except FileNotFoundError:
       print(f"Fehler: Die Datei {path} wurde nicht gefunden.")
 
+
+def getMinMaxMove_c_alpha_beta(cf):
+  path = "./connectFour/minmax_alpha_beta.exe"
+  data = str(cf.currentPlayer) + ' ' + ' '.join(str(cf.field[row][col]) for row in range(len(cf.field)) for col in range(len(cf.field[0])))
+
+  try:
+    ergebnis = subprocess.run(
+          [path, "9 0"], # [MAX_DEPTH] [debug_level]
+          input=data,
+          check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
+          capture_output=True,
+          text=True
+      )
+    
+    stdout = ergebnis.stdout.strip()
+    tokens = stdout.split()
+    #print(f"STDOUT:\n{stdout}")
+    print(tokens[-2])
+    path = int(tokens[-1])
+
+    return path
+    
+  except subprocess.CalledProcessError as e:
+      print(f"Fehler beim Starten der EXE: {e}")
+      print(f"Fehlerausgabe: \n{e.stderr}")
+  except FileNotFoundError:
+      print(f"Fehler: Die Datei {path} wurde nicht gefunden.")
+
+
 def game_thread():
       cf.startScreen()
 
 # set player types here
-# Options: human, minmax_py, minmax_c, minmax_py_alpha_beta, random, montecarlo, neuroevolution, heuristik
-player = ['montecarlo', 'minmax_c']
+# Options: human, minmax_py, minmax_c, minmax_py_alpha_beta, minmax_c_alpha_beta, random, montecarlo, neuroevolution, heuristik
+player = ['minmax_py', 'minmax_c']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
@@ -81,6 +110,8 @@ for round in range(10):
       cf.chooseRow(getMinMaxMove_c(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'minmax_py_alpha_beta':
       cf.chooseRow(getMinMaxAlphaBetaMove(copyGameWithoutPyGame(cf)))
+    elif player[cf.currentPlayer - 1] == 'minmax_c_alpha_beta':
+      cf.chooseRow(getMinMaxMove_c_alpha_beta(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'random':
       cf.chooseRow(getRandomMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'montecarlo':
