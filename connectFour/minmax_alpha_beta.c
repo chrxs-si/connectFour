@@ -1,3 +1,8 @@
+// Improvments: Deutlich verbesserte Heuriostik-Funktionen für MinMax
+//               : Schnellere Prüfung auf Gewinn
+//               : Alpha-Beta Pruning implementiert (komplene minmax_step FUnktion überarbeitet)
+//               : Bessere Zugreihenfolge für schnelleres Pruning
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -251,9 +256,12 @@ int minimax(int field[WIDTH][HEIGHT], int depth, int alpha, int beta, int base_p
     return heuristik(field, base_player);
   }
 
+  int move_order[WIDTH] = {3, 2, 4, 1, 5, 0, 6};
+
   if (current_player == base_player) {
     int max_eval = -1000000;
-    for (int row = 0; row < WIDTH; row++) {
+    for (int i = 0; i < WIDTH; i++) {
+      int row = move_order[i];
       int new_field[WIDTH][HEIGHT];
       memcpy(new_field, field, sizeof(int) * WIDTH * HEIGHT);
       int eval;
@@ -283,7 +291,8 @@ int minimax(int field[WIDTH][HEIGHT], int depth, int alpha, int beta, int base_p
     return max_eval;
   } else {
     int min_eval = 1000000;
-    for (int row = 0; row < WIDTH; row++) {
+    for (int i = 0; i < WIDTH; i++) {
+      int row = move_order[i];
       int new_field[WIDTH][HEIGHT];
       memcpy(new_field, field, sizeof(int) * WIDTH * HEIGHT);
       int eval;
