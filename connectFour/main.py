@@ -18,7 +18,7 @@ def getMinMaxMove_c(cf):
 
   try:
     ergebnis = subprocess.run(
-          [path, "9 0"], # [MAX_DEPTH] [debug_level]
+          [path, "7 0"], # [MAX_DEPTH] [debug_level]
           input=data,
           check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
           capture_output=True,
@@ -73,7 +73,7 @@ def game_thread():
 
 # set player types here
 # Options: human, minmax_py, minmax_c, minmax_py_alpha_beta, minmax_c_alpha_beta, random, montecarlo, neuroevolution, heuristik
-player = ['minmax_py', 'minmax_c']
+player = ['human', 'minmax_c_alpha_beta']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
