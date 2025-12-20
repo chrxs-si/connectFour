@@ -46,7 +46,7 @@ def getMinMaxMove_c_alpha_beta(cf):
 
   try:
     ergebnis = subprocess.run(
-          [path, "12 0"], # [MAX_DEPTH] [debug_level]
+          [path, "11 0"], # [MAX_DEPTH] [debug_level]
           input=data,
           check=False,  # Löst eine Ausnahme aus, wenn die EXE einen Fehlercode zurückgibt
           capture_output=True,
@@ -73,7 +73,7 @@ def game_thread():
 
 # set player types here
 # Options: human, minmax_py, minmax_c, minmax_py_alpha_beta, minmax_c_alpha_beta, random, montecarlo, neuroevolution, heuristik
-player = ['minmax_c', 'minmax_c_alpha_beta']
+player = ['human', 'minmax_c_alpha_beta']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
