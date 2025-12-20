@@ -1,16 +1,35 @@
 import math
 import random
 import json
-import numpy
+import time
 
 
 class NeuralNetwork:
-    def __init__(self):
-        self.layers = []
+    save_interval = 0
+    path = None
+
+    def initialize(self, layers):
+        self.layers = layers
         self.weights = []
         self.biases = []
+        self.initialize_weights()
+        self.initialize_biases()
+
+    def set_save_intervall(self, interval):
+        self.save_interval = interval
+        if (self.path == None):
+            print("can't save the nn, due to no given path.")
+
+    def set_path(self, path):
+        self.path = path
 
     # Aktivierungsfunktionen
+    def softsign(self, x):
+        return x / (1 + abs(x))
+    
+    def softsign_derivative(self, x):
+        return 1 / (1 + abs(x))**2
+
     def sigmoid(self, x):
         if x > 709:
             return 1.0
@@ -20,7 +39,8 @@ class NeuralNetwork:
         return 1 / (1 + math.exp(-x))
 
     def sigmoid_derivative(self, x):
-        return self.sigmoid(x) * (1 - self.sigmoid(x))
+        sig = self.sigmoid(x)
+        return sig * (1 - sig)
         
     def initialize(self, layers):
         self.layers = layers
@@ -41,7 +61,7 @@ class NeuralNetwork:
     def save(self, path):
         #nn_str = str(self.layers) + "\n-\n" + str(self.weights) + "\n-\n" + str(self.biases)
         with open(path, "w") as file:
-            json.dump({'layers': self.layers, 'weights': self.weights, 'biases': self.biases}, file)
+            json.dump({'layers': self.layers, 'weights': self.weights, 'biases': self.biases, 'path': self.path, 'save_interval': self.save_interval}, file)
     
     def load(self, path):
         nn_str = ""
@@ -51,6 +71,8 @@ class NeuralNetwork:
         self.layers = daten['layers']
         self.weights = daten['weights']
         self.biases = daten['biases']
+        self.path = daten['path']
+        self.save_interval = daten['save_interval']
         print("neuronal network has been loaded.")
 
     def forward(self, input):
@@ -62,11 +84,10 @@ class NeuralNetwork:
         for layer in range(len(self.biases)):
             output = []
             for knot in range(len(self.biases[layer])):
-                x = 0
+                x = self.biases[layer][knot]
                 for weight in range(len(self.weights[layer])):
                     x += self.outputs[layer][weight] * self.weights[layer][weight][knot]
-                    x += self.biases[layer][knot]
-                output.append(self.sigmoid(x))
+                output.append(self.softsign(x))
             self.outputs.append(output)
         return self.outputs[-1]
     
@@ -80,9 +101,9 @@ class NeuralNetwork:
         #Fehler in Ausgabeschicht
         errors[-1] = []
         for output in range (len(self.outputs[-1])):
-            errors[-1].append((self.outputs[-1][output] - targets[output]) * self.sigmoid_derivative(self.outputs[-1][output]))
+            errors[-1].append((self.outputs[-1][output] - targets[output]) * self.softsign_derivative(self.outputs[-1][output]))
 
-        errors[-1] = [(self.outputs[-1][i] - targets[i]) * self.sigmoid_derivative(self.outputs[-1][i])
+        errors[-1] = [(self.outputs[-1][i] - targets[i]) * self.softsign_derivative(self.outputs[-1][i])
                       for i in range(len(targets))]
 
         #Fehler in versteckten Shichten
@@ -92,7 +113,7 @@ class NeuralNetwork:
                 error = 0
                 for weight in range (len(errors[layer + 1])):
                     error += errors[layer + 1][weight] * self.weights[layer][knot][weight]
-                error *= self.sigmoid_derivative(self.outputs[layer][knot])
+                error *= self.softsign_derivative(self.outputs[layer][knot])
                 layer_errors.append(error)
             errors[layer] = layer_errors
 
@@ -105,6 +126,8 @@ class NeuralNetwork:
                 self.biases[layer][knot] -= leaning_rate * errors[layer + 1][knot]
 
     def train(self, inputs, targets, epochs, learning_rate):
+        start_training_time = time.time()
+
         for epoch in range(epochs):
             total_error = 0
             for x, y in zip(inputs, targets):
@@ -113,3 +136,12 @@ class NeuralNetwork:
                 for i in range(len(y)):
                     total_error += (self.outputs[-1][i] - y[i])**2
             print(f"Epoch {epoch + 1}/{epochs}, Fehler: {total_error:.4f}")
+
+            #neuronal network wird regelmäßig gespeichert
+            if (self.path != None and self.save_interval != 0 and epoch % self.save_interval == 0):
+                self.save(self.path)
+                t = time.time() - start_training_time
+                print("nn has been saved. Time: " + str(int(t)) + "s")
+        t = time.time() - start_training_time
+        print("finished training. Time: " + str(int(t)) + "s")
+            
