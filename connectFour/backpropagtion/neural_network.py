@@ -22,7 +22,7 @@ class NeuralNetwork:
 
     def set_path(self, path):
         self.path = path
-
+        
     # Aktivierungsfunktionen
     def softsign(self, x):
         return x / (1 + abs(x))
@@ -41,7 +41,18 @@ class NeuralNetwork:
     def sigmoid_derivative(self, x):
         sig = self.sigmoid(x)
         return sig * (1 - sig)
-        
+    
+    def Tanh(self, x):
+        a = math.pow(math.e, x)
+        b = math.pow(math.e, -x)
+        return (a-b)/(a+b)
+
+    def ReLU(self, x):
+        if x < 0:
+            return 0
+        else:
+            return x
+
     def initialize(self, layers):
         self.layers = layers
         self.initialize_weights()
