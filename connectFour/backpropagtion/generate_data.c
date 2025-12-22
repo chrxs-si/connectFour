@@ -199,7 +199,7 @@ void write_csv_line(FILE *f, int field[][HEIGHT], int best_move) {
 int main(int argc, char *argv[]) {
     const char *eval_program = "minmax_alpha_beta.exe";
     int num_positions = 100000;
-    int max_depth = 8;
+    int max_depth = 10;
     const char *output_file = "data/training_data.csv";
 
     if (argc > 1) eval_program = argv[1];
