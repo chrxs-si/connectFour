@@ -11,6 +11,8 @@ from monteCarloTreeSearch import getMonteCarloTreeSearchMove
 from neuroevolution import getNeuroEvolutioneSearchMove
 from heuristik import getHeuristikMove
 from minmax_alpha_beta import getMinMaxAlphaBetaMove
+from backpropagtion.neural_network_v4 import getNeuralNetworkMove
+
 
 def getMinMaxMove_c(cf):
   path = "./connectFour/minmax.exe"
@@ -67,13 +69,12 @@ def getMinMaxMove_c_alpha_beta(cf):
   except FileNotFoundError:
       print(f"Fehler: Die Datei {path} wurde nicht gefunden.")
 
-
 def game_thread():
       cf.startScreen()
 
 # set player types here
-# Options: human, minmax_py, minmax_c, minmax_py_alpha_beta, minmax_c_alpha_beta, random, montecarlo, neuroevolution, heuristik
-player = ['human', 'minmax_c_alpha_beta']
+# Options: human, minmax_py, minmax_c, minmax_py_alpha_beta, minmax_c_alpha_beta, random, montecarlo, neuroevolution, heuristik, neuronetwork_backpropagation
+player = ['human', 'neuronetwork_backpropagation']
 
 playerTime = [0, 0]
 playerMoves = [0, 0]
@@ -120,6 +121,8 @@ for round in range(10):
       cf.chooseRow(getNeuroEvolutioneSearchMove(copyGameWithoutPyGame(cf)))
     elif player[cf.currentPlayer - 1] == 'heuristik':
       cf.chooseRow(getHeuristikMove(copyGameWithoutPyGame(cf)))
+    elif player[cf.currentPlayer - 1] == 'neuronetwork_backpropagation':
+      cf.chooseRow(getNeuralNetworkMove(cf))
 
     endTime = time.time()
 

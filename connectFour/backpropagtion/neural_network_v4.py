@@ -254,6 +254,20 @@ class NeuralNetwork:
                 self.save(self.path)
 
 
+def getNeuralNetworkMove(cf):
+    nn = NeuralNetwork()
+    nn.load("connectFour/backpropagtion/nn_models/nn_2.json")
+
+    board = []
+    for row in cf.field:
+        for cell in row:
+            board.append(cell)
+
+    normalized_board, _ = normalize_board(board + ["0"])  # Dummy best_row value
+    prediction = nn.forward(normalized_board)
+    return prediction.index(max(prediction))
+
+
 def normalize_board(input):
     board = input[:42]
     best_row = input[42]
@@ -276,9 +290,9 @@ def normalize_board(input):
 
 nn = NeuralNetwork()
 
-loading_nn_path = "connectFour/backpropagtion/nn_models/nn_1.json"
-new_nn_path = "connectFour/backpropagtion/nn_models/nn_2.json"
-data_path = "connectFour/backpropagtion/training_data/training_data_depth_10_(1).csv"
+loading_nn_path = "connectFour/backpropagtion/nn_models/nn_6.json"
+new_nn_path = "connectFour/backpropagtion/nn_models/nn_7.json"
+data_path = "connectFour/backpropagtion/training_data/training_data_depth_10_(6).csv"
 lines_starting_at = 0
 
 # initialize and save a new neural network
@@ -301,7 +315,7 @@ if True:
     # load data  
     data = []
     with open(data_path, "r") as datei:
-        for zeile in islice(datei, lines_starting_at, lines_starting_at + 25900):
+        for zeile in islice(datei, lines_starting_at, lines_starting_at + 57000):
             data.append(zeile.strip())
 
     input_data = []
@@ -317,7 +331,7 @@ if True:
     nn.train(
         inputs=input_data,
         targets=target_data,
-        epochs=3,
+        epochs=10,
         learning_rate=0.002,
         batch_size=32,
     )
