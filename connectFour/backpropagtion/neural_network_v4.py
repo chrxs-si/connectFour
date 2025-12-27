@@ -300,8 +300,8 @@ data_paths = [
     (data_base_path + "training_data_depth_10_(6).csv", 57000),
     ]
 
-starting_path = 0
-save_index = 20 # new save index. If last is nn_2.json, set to 3
+starting_path = 4
+save_index = 29 # new save index. If last is nn_2.json, set to 3
 nn_base_path = "connectFour/backpropagtion/nn_models/"
 
 loading_nn_path = "connectFour/backpropagtion/nn_models/nn_6.json"
@@ -351,9 +351,9 @@ while True:
     nn.train(
         inputs=input_data,
         targets=target_data,
-        epochs=5,
+        epochs=10,
         learning_rate=0.005,
-        batch_size=16,
+        batch_size=32,
     )
 
     nn.save(nn_base_path + f"nn_{save_index}.json")
