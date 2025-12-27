@@ -256,6 +256,7 @@ nn = NeuralNetwork()
 
 data_base_path = "connectFour/backpropagtion/training_data/"
 data_paths = [
+    (data_base_path + "training_data_depth_10_(0).csv", 60300),
     (data_base_path + "training_data_depth_10_(1).csv", 25900),
     (data_base_path + "training_data_depth_10_(2).csv", 24100),
     (data_base_path + "training_data_depth_10_(3).csv", 43800),

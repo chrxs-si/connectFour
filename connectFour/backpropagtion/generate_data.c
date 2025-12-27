@@ -1,4 +1,4 @@
-// Training, insgesamt ca. 26 Stunden auf Laptop und PC --> Generiert: 245.000 Positionen
+// Training, insgesamt ca. 32 Stunden auf Laptop und PC --> Generiert: 305.000 Positionen
 //
 #include <stdio.h>
 #include <stdlib.h>
