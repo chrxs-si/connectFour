@@ -256,7 +256,7 @@ nn = NeuralNetwork()
 
 data_base_path = "connectFour/backpropagtion/training_data/"
 data_paths = [
-    (data_base_path + "training_data_depth_10_(0).csv", 60300),
+    (data_base_path + "training_data_depth_10_(0).csv", 59250),
     (data_base_path + "training_data_depth_10_(1).csv", 25900),
     (data_base_path + "training_data_depth_10_(2).csv", 24100),
     (data_base_path + "training_data_depth_10_(3).csv", 43800),
@@ -265,8 +265,8 @@ data_paths = [
     (data_base_path + "training_data_depth_10_(6).csv", 57000),
     ]
 
-starting_path = 5
-save_index = 122 # new save index. If last is nn_2.json, set to 3
+starting_path = 0
+save_index = 322 # new save index. If last is nn_2.json, set to 3
 nn_base_path = "connectFour/backpropagtion/nn_models/"
 
 loading_nn_path = "connectFour/backpropagtion/nn_models/nn_6.json"
@@ -289,7 +289,9 @@ if False:
 
 # load an existing neural network
 current_data_index = starting_path
-while False:
+
+save_counter = 0
+while True:
 
     print("loading neural network from: " + nn_base_path + f"nn_{save_index - 1}.json")
     nn.load(nn_base_path + f"nn_{save_index - 1}.json")
@@ -330,5 +332,7 @@ while False:
     print("------------------------------------------------------------\n")
 
     lines_starting_at = 0
-    save_index += 1
+    save_counter = (save_counter + 1) % len(data_paths)
+    if save_counter == 0:
+        save_index += 1
     current_data_index = (current_data_index + 1) % len(data_paths)
