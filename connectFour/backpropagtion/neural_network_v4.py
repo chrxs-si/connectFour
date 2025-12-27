@@ -290,6 +290,20 @@ def normalize_board(input):
 
 nn = NeuralNetwork()
 
+data_base_path = "connectFour/backpropagtion/training_data/"
+data_paths = [
+    (data_base_path + "training_data_depth_10_(1).csv", 25900),
+    (data_base_path + "training_data_depth_10_(2).csv", 24100),
+    (data_base_path + "training_data_depth_10_(3).csv", 43800),
+    (data_base_path + "training_data_depth_10_(4).csv", 41800),
+    (data_base_path + "training_data_depth_10_(5).csv", 54800),
+    (data_base_path + "training_data_depth_10_(6).csv", 57000),
+    ]
+
+starting_path = 0
+save_index = 20 # new save index. If last is nn_2.json, set to 3
+nn_base_path = "connectFour/backpropagtion/nn_models/"
+
 loading_nn_path = "connectFour/backpropagtion/nn_models/nn_6.json"
 new_nn_path = "connectFour/backpropagtion/nn_models/nn_7.json"
 data_path = "connectFour/backpropagtion/training_data/training_data_depth_10_(6).csv"
@@ -309,13 +323,19 @@ if False:
     nn.save(loading_nn_path)
 
 # load an existing neural network
-if True:
-    nn.load(loading_nn_path)
+current_data_index = starting_path
+while True:
+
+    print("loading neural network from: " + nn_base_path + f"nn_{save_index - 1}.json")
+    nn.load(nn_base_path + f"nn_{save_index - 1}.json")
 
     # load data  
     data = []
-    with open(data_path, "r") as datei:
-        for zeile in islice(datei, lines_starting_at, lines_starting_at + 57000):
+    path, lines = data_paths[current_data_index]
+    print ("loading data from: " + path + " with lines: " + str(lines))
+
+    with open(path, "r") as datei:
+        for zeile in islice(datei, lines_starting_at, lines):
             data.append(zeile.strip())
 
     input_data = []
@@ -326,14 +346,21 @@ if True:
         input_data.append(normalized_board)
         target_data.append(normalized_best_row)
 
-    nn.path = new_nn_path
+    nn.path = nn_base_path + f"nn_{save_index}.json"
 
     nn.train(
         inputs=input_data,
         targets=target_data,
-        epochs=10,
-        learning_rate=0.002,
-        batch_size=32,
+        epochs=5,
+        learning_rate=0.005,
+        batch_size=16,
     )
 
-    nn.save(new_nn_path)
+    nn.save(nn_base_path + f"nn_{save_index}.json")
+    print("saved neural network to: " + nn_base_path + f"nn_{save_index}.json")
+    print("trained with data from: " + path + " lines: " + str(lines))
+    print("------------------------------------------------------------\n")
+
+    lines_starting_at = 0
+    save_index += 1
+    current_data_index = (current_data_index + 1) % len(data_paths)
