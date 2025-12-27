@@ -9,36 +9,34 @@ from itertools import islice
 
 #region activtion functions
 def sigmoid(x):
-    if x > 709:
-        return 1.0
-    elif x < -709:
-        return 0.0 
-    return float(1 / (1 + np.exp(-x)))
+    x = np.clip(x, -709, 709)
+    return 1 / (1 + np.exp(-x))
 
 def sigmoid_derivative(x):
     s = sigmoid(x)
     return s * (1 - s)
 
-def relu(x):
-    return float(np.maximum(0, x))
-
-def relu_derivative(x):
-    return float(np.where(x > 0, 1, 0))
-
 def tanh(x):
-    return float(np.tanh(x))
+    return np.tanh(x)
 
 def tanh_derivative(x):
-    return float(1 - np.tanh(x) ** 2)
+    return 1 - np.tanh(x) ** 2
+
+def relu(x):
+    return np.maximum(0, x)
+
+def relu_derivative(x):
+    return (x > 0).astype(float)
 
 def leaky_relu(x, alpha=0.01):
-    return float(np.where(x > 0, x, alpha * x))
-    
+    return np.where(x > 0, x, alpha * x)
+
 def leaky_relu_derivative(x, alpha=0.01):
-    return 1.0 if x > 0 else alpha
+    return np.where(x > 0, 1.0, alpha)
 
 def softmax(x):
-    exps = np.exp(x - np.max(x))
+    x = x - np.max(x, axis=-1, keepdims=True)
+    exps = np.exp(x)
     return exps / np.sum(exps, axis=-1, keepdims=True)
 
 #endregion
@@ -46,7 +44,7 @@ def softmax(x):
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
-            return obj.tolist()  # Umwandlung von NumPy-Array in Liste
+            return obj.tolist()
         return super(NumpyEncoder, self).default(obj)
 
 class NeuralNetwork:
@@ -69,11 +67,8 @@ class NeuralNetwork:
     def set_path(self, path):
         self.path = path
 
-    def save(self):
-        if self.path == None: print("no path set"); return
-        self.save(self.path)
-
-    def save(self, path):
+    def save(self, path=None):
+        if path == None: path = self.path
         with open(path, "w") as file:
             json.dump({"layers": self.layers, 
                        "weights": self.weights, 
@@ -83,19 +78,15 @@ class NeuralNetwork:
                        "output_activation_function": self.output_activation_function
                        }, file, cls=NumpyEncoder)
 
-    def load(self):
-        if self.path == None: print("no path set"); return
-        return self.load(self.path)
-
     def load(self, path=None):
         if path == None: path = self.path
         with open(path, "r") as file:
             data = json.load(file)
 
         self.layers = data['layers']
-        self.weights = data['weights']
-        self.biases = data['biases']
-        self.init_method = data['activation_function']
+        self.weights = [np.array(w) for w in data['weights']]
+        self.biases = [np.array(b) for b in data['biases']]
+        self.init_method = data['init_method']
         self.activation_function = data['activation_function']
         self.output_activation_function = data['output_activation_function']
         print("neuronal network has been loaded.")
@@ -112,7 +103,7 @@ class NeuralNetwork:
                 layer_weights = np.random.randn(*shape) * np.sqrt(2.0 / self.layers[i])
             else:
                 raise ValueError("unknown method to initialize")
-            self.weights.append(layer_weights.tolist())
+            self.weights.append(layer_weights)
 
     def initialize_biases(self):
         for i in range(len(self.layers) - 1):
@@ -125,7 +116,7 @@ class NeuralNetwork:
                 layer_biases = np.zeros(shape) 
             else:
                 raise ValueError("unknown method to initialize")
-            self.biases.append(layer_biases.tolist())
+            self.biases.append(layer_biases)
 
     def activation(self, x, function):
         return globals()[function](x)
@@ -133,84 +124,45 @@ class NeuralNetwork:
     def activation_derivative(self, x, function):
         return globals()[function + "_derivative"](x)
 
-    def forward (self, input):
-        #if (len(input) != len(self.layers[0])):
-        #    raise ValueError("input and first layer are not the same size.")
+    def forward(self, input):
+        a = np.array(input)
+        self.outputs = [a]
+        self.zs = []
 
-        self.outputs = [input]
-        self.zs = [] # leaky relu Pre-Aktivierungen (z = Wx + b)
-        #Berechnen der Input-Layer
-        layer_output = []
-        layer_zs = []
-        for neuron in range(len(self.biases[0])):
-            z = 0
-            #Muliplizieren aus vorheringen Layer mit den Gewichten
-            for weight in range(len(self.weights[0][neuron])):
-                z += self.outputs[0][weight] * self.weights[0][neuron][weight]
-            #Addieren des Bias
-            z += self.biases[0][neuron]
+        for i in range(len(self.weights) - 1):
+            z = self.weights[i] @ a + self.biases[i]
+            self.zs.append(z)
+            a = self.activation(z, self.activation_function)
+            self.outputs.append(a)
 
-            layer_zs.append(z)
-            layer_output.append(self.activation(z, self.activation_function))#Hier ist es möglich die Aktivierungsfunktion für den ersten layer zu ändern
-        self.zs.append(layer_zs)
-        self.outputs.append(layer_output)
+        # Output-Layer
+        z = self.weights[-1] @ a + self.biases[-1]
+        self.zs.append(z)
+        a = globals()[self.output_activation_function](z)
+        self.outputs.append(a)
 
-        #Sollte hier die gleiche Aktivierungsfunktion für alle Layer (inklusive input und output Layer) benutzt werden:
-        #Die entsprechende Berechnung (input und output layer) kann gelöscht werden, hier kann range(1, len(self.biases) - 1) mit range(len(self.biases)) ersetzt werden
-        #Berechnen der Hidden-Layer
-        for layer in range(1, len(self.biases) - 1):
-            layer_output = []
-            layer_zs = []
-            for neuron in range(len(self.biases[layer])):
-                z = 0
-                #Muliplizieren aus vorheringen Layer mit den Gewichten
-                for weight in range(len(self.weights[layer][neuron])):
-                    z += self.outputs[layer][weight] * self.weights[layer][neuron][weight]
-                #Addieren des Bias
-                z += self.biases[layer][neuron]
-                layer_zs.append(z)
-                layer_output.append(self.activation(z, self.activation_function))#Hier ist es möglich die Aktivierungsfunktion für die hidden layer zu ändern
-            self.zs.append(layer_zs)
-            self.outputs.append(layer_output)
+        return a
 
-        #Berechnen der Output-Layer
-        logits = []
-        for neuron in range(len(self.biases[-1])):
-            z = 0
-            for weight in range(len(self.weights[-1][neuron])):
-                z += self.outputs[-1][weight] * self.weights[-1][neuron][weight]
-            z += self.biases[-1][neuron]
-            logits.append(z)
+    def backward(self, targets):
+        y = np.array(targets)
 
-        self.zs.append(logits)
-
-        # Softmax einmal auf den gesamten Vektor
-        layer_output = softmax(np.array(logits)).tolist()
-        self.outputs.append(layer_output)
-
-        return self.outputs[-1]
-
-    def backward(self, targets, learning_rate):
-        if len(targets) != len(self.biases[-1]):
-            raise ValueError("target and output layer are not the same size.")
-
-        # Berechnung des Fehlers für die Output-Schicht
-        delta = np.array(self.outputs[-1]) - np.array(targets)
+        delta = self.outputs[-1] - y
         deltas = [delta]
 
-        # Backpropagation durch die versteckten Schichten
-        for layer in range(len(self.weights) - 1, 0, -1):
-            error = np.dot(np.array(self.weights[layer]).T, deltas[0])
-            z = np.array(self.zs[layer - 1])
-            deriv = np.array([self.activation_derivative(v, self.activation_function) for v in z])
-            delta = error * deriv
+        for l in range(len(self.weights) - 1, 0, -1):
+            z = self.zs[l - 1]
+            deriv = globals()[self.activation_function + "_derivative"](z)
+            delta = self.weights[l].T @ deltas[0] * deriv
             deltas.insert(0, delta)
 
-        # Gewichte und Biases aktualisieren
-        for layer in range(len(self.weights)):
-            weight_updates = np.outer(deltas[layer], self.outputs[layer])
-            self.weights[layer] = np.array(self.weights[layer]) - learning_rate * weight_updates
-            self.biases[layer] = np.array(self.biases[layer]) - learning_rate * deltas[layer]         
+        grad_w = []
+        grad_b = []
+
+        for l in range(len(self.weights)):
+            grad_w.append(np.outer(deltas[l], self.outputs[l]))
+            grad_b.append(deltas[l])
+
+        return grad_w, grad_b   
 
     def train(self, inputs, targets, epochs, learning_rate=0.002, batch_size=32, training_id=0):
         self.training_ids.append(training_id)
@@ -233,17 +185,29 @@ class NeuralNetwork:
                 batch_loss = 0
 
                 #Iterieren durch alle Daten des Batches
+                grad_w_sum = [np.zeros_like(w) for w in self.weights]
+                grad_b_sum = [np.zeros_like(b) for b in self.biases]
+
                 for input, target in zip(batch_inputs, batch_targets):
                     self.forward(input)
-                    self.backward(target, learning_rate)
-                    loss = 0.0
-                    for j in range(len(self.outputs[-1])):
-                        loss -= target[j] * math.log(self.outputs[-1][j] + 1e-9)
-                    batch_loss += loss
+                    grad_w, grad_b = self.backward(target)
+
+                    for l in range(len(self.weights)):
+                        grad_w_sum[l] += grad_w[l]
+                        grad_b_sum[l] += grad_b[l]
+
+                    pred = self.outputs[-1]
+                    batch_loss += -np.sum(target * np.log(pred + 1e-9))
+
+                batch_len = len(batch_inputs)
+
+                for l in range(len(self.weights)):
+                    self.weights[l] -= learning_rate * (grad_w_sum[l] / batch_len)
+                    self.biases[l] -= learning_rate * (grad_b_sum[l] / batch_len)
 
                 total_loss += batch_loss / len(batch_inputs)
 
-                if self.info: print(f"epoch {epoch + 1} -> batch {batch + batch_size}/{len(inputs)}")
+                # if self.info: print(f"epoch {epoch + 1} -> batch {batch + batch_size}/{len(inputs)}")
 
                 if training_id not in self.training_ids: return #Abbrechen falls der thread abgebrochen wurde
             
@@ -256,7 +220,7 @@ class NeuralNetwork:
 
 def getNeuralNetworkMove(cf):
     nn = NeuralNetwork()
-    nn.load("connectFour/backpropagtion/nn_models/nn_2.json")
+    nn.load("connectFour/backpropagtion/nn_models/nn_324.json")
 
     board = []
     for row in cf.field:
@@ -265,7 +229,7 @@ def getNeuralNetworkMove(cf):
 
     normalized_board, _ = normalize_board(board + ["0"])  # Dummy best_row value
     prediction = nn.forward(normalized_board)
-    return prediction.index(max(prediction))
+    return int(np.argmax(prediction))
 
 
 def normalize_board(input):
@@ -300,8 +264,8 @@ data_paths = [
     (data_base_path + "training_data_depth_10_(6).csv", 57000),
     ]
 
-starting_path = 4
-save_index = 29 # new save index. If last is nn_2.json, set to 3
+starting_path = 5
+save_index = 122 # new save index. If last is nn_2.json, set to 3
 nn_base_path = "connectFour/backpropagtion/nn_models/"
 
 loading_nn_path = "connectFour/backpropagtion/nn_models/nn_6.json"
@@ -324,7 +288,7 @@ if False:
 
 # load an existing neural network
 current_data_index = starting_path
-while True:
+while False:
 
     print("loading neural network from: " + nn_base_path + f"nn_{save_index - 1}.json")
     nn.load(nn_base_path + f"nn_{save_index - 1}.json")
@@ -348,11 +312,14 @@ while True:
 
     nn.path = nn_base_path + f"nn_{save_index}.json"
 
+    input_data = np.array(input_data, dtype=np.float32)
+    target_data = np.array(target_data, dtype=np.float32)
+
     nn.train(
         inputs=input_data,
         targets=target_data,
         epochs=10,
-        learning_rate=0.005,
+        learning_rate=0.001,
         batch_size=32,
     )
 
