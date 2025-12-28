@@ -220,7 +220,7 @@ class NeuralNetwork:
 
 def getNeuralNetworkMove(cf):
     nn = NeuralNetwork()
-    nn.load("connectFour/backpropagtion/nn_models/nn_324.json")
+    nn.load("connectFour/backpropagtion/nn_models/nn_354.json")
 
     board = []
     for row in cf.field:
@@ -266,7 +266,7 @@ data_paths = [
     ]
 
 starting_path = 0
-save_index = 322 # new save index. If last is nn_2.json, set to 3
+save_index = 322 # last save index. If last is nn_2.json, set to 2
 nn_base_path = "connectFour/backpropagtion/nn_models/"
 
 loading_nn_path = "connectFour/backpropagtion/nn_models/nn_6.json"
@@ -291,10 +291,10 @@ if False:
 current_data_index = starting_path
 
 save_counter = 0
-while True:
+while False:
 
-    print("loading neural network from: " + nn_base_path + f"nn_{save_index - 1}.json")
-    nn.load(nn_base_path + f"nn_{save_index - 1}.json")
+    print("loading neural network from: " + nn_base_path + f"nn_{save_index}.json")
+    nn.load(nn_base_path + f"nn_{save_index}.json")
 
     # load data  
     data = []
@@ -326,13 +326,14 @@ while True:
         batch_size=32,
     )
 
+    lines_starting_at = 0
+    save_counter = (save_counter + 1) % len(data_paths)
+    if save_counter == 0:
+        save_index += 1
+
     nn.save(nn_base_path + f"nn_{save_index}.json")
     print("saved neural network to: " + nn_base_path + f"nn_{save_index}.json")
     print("trained with data from: " + path + " lines: " + str(lines))
     print("------------------------------------------------------------\n")
 
-    lines_starting_at = 0
-    save_counter = (save_counter + 1) % len(data_paths)
-    if save_counter == 0:
-        save_index += 1
     current_data_index = (current_data_index + 1) % len(data_paths)
