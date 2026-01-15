@@ -16,7 +16,11 @@ from backpropagtion.neural_network_v4 import getNeuralNetworkMove
 
 def getMinMaxMove_c(cf):
   path = "./connectFour/minmax.exe"
-  data = str(cf.currentPlayer) + ' ' + ' '.join(str(cf.field[row][col]) for row in range(len(cf.field)) for col in range(len(cf.field[0])))
+  data = str(cf.currentPlayer) + ' '
+
+  for row in range(len(cf.field)):
+      for col in range(len(cf.field[0])):
+          data += str(cf.field[row][col]) + ' '
 
   try:
     ergebnis = subprocess.run(
@@ -44,7 +48,11 @@ def getMinMaxMove_c(cf):
 
 def getMinMaxMove_c_alpha_beta(cf):
   path = "./connectFour/minmax_alpha_beta.exe"
-  data = str(cf.currentPlayer) + ' ' + ' '.join(str(cf.field[row][col]) for row in range(len(cf.field)) for col in range(len(cf.field[0])))
+  data = str(cf.currentPlayer) + ' '
+
+  for row in range(len(cf.field)):
+      for col in range(len(cf.field[0])):
+          data += str(cf.field[row][col]) + ' '
 
   try:
     ergebnis = subprocess.run(
